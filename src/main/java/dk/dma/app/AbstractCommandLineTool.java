@@ -71,22 +71,19 @@ public abstract class AbstractCommandLineTool extends AbstractDmaApplication {
             }
         }
 
+        JCommander jc = null;
         try {
-            JCommander jc = new JCommander(this, args);
-            if (help) {
-                jc.setProgramName(getApplicationName());
-                jc.usage();
-                return;
-            }
+            jc = new JCommander(this, args);
         } catch (ParameterException e) {
-            // Something wasnt configured properly.
             // show the exception message and print help
             System.out.println(e.getMessage());
-            JCommander jc = new JCommander(this, new String[] { "-help" });
+            jc = new JCommander(this, new String[] { "-help" });
+        }
+        if (help) {
             jc.setProgramName(getApplicationName());
             jc.usage();
-            return;
+        } else {
+            start();
         }
-        start();
     }
 }
