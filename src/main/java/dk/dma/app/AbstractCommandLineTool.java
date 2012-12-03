@@ -19,6 +19,7 @@ import java.lang.reflect.Field;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
+import com.beust.jcommander.ParameterException;
 import com.beust.jcommander.ParametersDelegate;
 
 import dk.dma.app.util.AnnotationUtils;
@@ -29,6 +30,7 @@ import dk.dma.app.util.AnnotationUtils;
  */
 public abstract class AbstractCommandLineTool extends AbstractDmaApplication {
 
+    // We should always have a help
     @Parameter(names = "-help", help = true, description = "prints this help", hidden = true)
     protected boolean help;
 
@@ -68,13 +70,23 @@ public abstract class AbstractCommandLineTool extends AbstractDmaApplication {
                 } catch (NoSuchFieldException ignore) {}
             }
         }
-        JCommander jc = new JCommander(this, args);
-        if (help) {
+
+        try {
+            JCommander jc = new JCommander(this, args);
+            if (help) {
+                jc.setProgramName(getApplicationName());
+                jc.usage();
+                return;
+            }
+        } catch (ParameterException e) {
+            // Something wasnt configured properly.
+            // show the exception message and print help
+            System.out.println(e.getMessage());
+            JCommander jc = new JCommander(this, new String[] { "-help" });
             jc.setProgramName(getApplicationName());
             jc.usage();
             return;
         }
         start();
-
     }
 }
