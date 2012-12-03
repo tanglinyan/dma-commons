@@ -10,37 +10,16 @@
   </parent>
 
   <groupId>dk.dma.app</groupId>
-  <artifactId>dma-app</artifactId>
+  <artifactId>dma-app-parent</artifactId>
   <version>0.1-SNAPSHOT</version>
-  <name>DMA app</name>
-  <description>The dma application framework</description>
+  <name>DMA App Parent</name>
+  <packaging>pom</packaging>
+  <description>This parent pom for App</description>
 
-  <dependencies>
-    <dependency>
-      <groupId>com.google.guava</groupId>
-      <artifactId>guava</artifactId>
-      <version>13.0</version>
-    </dependency>
-
-    <dependency>
-      <groupId>com.google.inject</groupId>
-      <artifactId>guice</artifactId>
-      <version>3.0</version>
-    </dependency>
-
-    <dependency>
-      <groupId>com.beust</groupId>
-      <artifactId>jcommander</artifactId>
-      <version>1.30</version>
-    </dependency>
-    
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.10</version>
-      <scope>test</scope>
-    </dependency>
-  </dependencies>
+  <modules>
+    <module>dma-app</module>
+    <module>dma-app-management</module>
+  </modules>
 
   <repositories>
     <repository>

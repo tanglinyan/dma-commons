@@ -15,28 +15,23 @@
  */
 package dk.dma.app.util;
 
+import java.lang.reflect.Field;
+
 /**
  * 
  * @author Kasper Nielsen
  */
-public class TimeTool {
+public class ReflectionUtil {
 
-    public static int daySinceEpoch(long epochTime) {
-        return hoursSinceEpoch(epochTime) / 24;
-    }
-
-    public static int hoursSinceEpoch(long epochTime) {
-        return minutesSinceEpoch(epochTime) / 60;
-    }
-
-    public static int minutesSinceEpoch(long epochTime) {
-        if (epochTime <= 0) {
-            throw new IllegalArgumentException("epochTime must be positive, was " + epochTime);
+    public static Field getDeclaredField(Class<?> type, String name) throws NoSuchFieldException {
+        while (type != Object.class) {
+            for (Field field : type.getDeclaredFields()) {
+                if (field.getName().equals(name)) {
+                    return field;
+                }
+            }
+            type = type.getSuperclass();
         }
-        long result = epochTime / 60 / 1000;
-        if (result >= Integer.MAX_VALUE) {
-            throw new IllegalArgumentException("epochtime was to high, epochTime = " + epochTime);
-        }
-        return (int) result;
+        throw new NoSuchFieldException("Could not find field with the name " + name);
     }
 }

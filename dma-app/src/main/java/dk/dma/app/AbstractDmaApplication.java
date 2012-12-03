@@ -17,15 +17,22 @@ package dk.dma.app;
 
 import static java.util.Objects.requireNonNull;
 
+import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import javax.management.DynamicMBean;
+import javax.management.MBeanServer;
+import javax.management.ObjectName;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.name.Names;
+
+import dk.dma.management.Managements;
 
 /**
  * 
@@ -82,8 +89,21 @@ public abstract class AbstractDmaApplication {
 
     protected abstract void run(Injector injector) throws Exception;
 
-    protected synchronized void start() throws Exception {
+    protected void start() throws Exception {
         defaultModule();
-        run(Guice.createInjector(modules));
+        Injector i = Guice.createInjector(modules);
+        // Management
+        tryManage(this);
+        run(i);
+    }
+
+    private void tryManage(Object o) throws Exception {
+        DynamicMBean mbean = Managements.tryCreate(this);
+        if (mbean != null) {
+            MBeanServer mb = ManagementFactory.getPlatformMBeanServer();
+            Class<?> c = o.getClass();
+            ObjectName objectName = new ObjectName(c.getPackage().getName() + ":type=" + c.getSimpleName());
+            mb.registerMBean(mbean, objectName);
+        }
     }
 }

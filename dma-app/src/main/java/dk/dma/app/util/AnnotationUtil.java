@@ -25,7 +25,7 @@ import java.util.Map;
  * 
  * @author Kasper Nielsen
  */
-public class AnnotationUtils {
+public class AnnotationUtil {
 
     public static <T extends Annotation> Map<Field, T> getAnnotatedFields(Class<?> type, Class<T> annotation) {
         final Map<Field, T> fields = new HashMap<>();

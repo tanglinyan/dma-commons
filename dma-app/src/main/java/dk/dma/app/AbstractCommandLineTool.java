@@ -22,7 +22,8 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import com.beust.jcommander.ParametersDelegate;
 
-import dk.dma.app.util.AnnotationUtils;
+import dk.dma.app.util.AnnotationUtil;
+import dk.dma.app.util.ReflectionUtil;
 
 /**
  * 
@@ -50,12 +51,12 @@ public abstract class AbstractCommandLineTool extends AbstractDmaApplication {
      */
     protected void execute(String[] args) throws Exception {
         // For various reasons we need to initialize the function field, because of @ParametersDelegate
-        for (Field f : AnnotationUtils.getAnnotatedFields(getClass(), ParametersDelegate.class).keySet()) {
+        for (Field f : AnnotationUtil.getAnnotatedFields(getClass(), ParametersDelegate.class).keySet()) {
             if (f.getName().endsWith("Instance")) {
                 try {
                     f.setAccessible(true);
                     if (f.get(this) == null) {
-                        Field ff = getClass().getDeclaredField(f.getName().replace("Instance", ""));
+                        Field ff = ReflectionUtil.getDeclaredField(getClass(), f.getName().replace("Instance", ""));
                         ff.setAccessible(true);
                         String className = (String) ff.get(this);
                         for (int i = 0; i < args.length; i++) {

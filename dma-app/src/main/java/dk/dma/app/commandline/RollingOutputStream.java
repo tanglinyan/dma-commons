@@ -13,25 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package dk.dma.app.util;
+package dk.dma.app.commandline;
 
 import static java.util.Objects.requireNonNull;
 
 import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
+import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Path;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-
-import com.google.common.io.CountingOutputStream;
 
 /**
  * 
  * @author Kasper Nielsen
  */
-public class RollingOutputStream extends OutputStream {
+class RollingOutputStream extends OutputStream {
 
     private CountingOutputStream cos;
 
@@ -47,9 +47,9 @@ public class RollingOutputStream extends OutputStream {
 
     private final boolean zip;
 
-    long totalWritten;
+    final AtomicLong totalWritten = new AtomicLong();
 
-    public RollingOutputStream(Path folder, String prefix, int maxSizeMB, boolean zip) {
+    RollingOutputStream(Path folder, String prefix, int maxSizeMB, boolean zip) {
         this.folder = requireNonNull(folder);
         this.prefix = requireNonNull(prefix);
         if (maxSizeMB < 1) {
@@ -67,7 +67,6 @@ public class RollingOutputStream extends OutputStream {
             current = null;
         }
         if (cos != null) {
-            totalWritten += cos.getCount();
             cos.close();
             cos = null;
         }
@@ -84,15 +83,13 @@ public class RollingOutputStream extends OutputStream {
     // We want to make sure we do not start a new file in the middle of a sentence.
     // So we only wrap whenever a message has been fully delivered
     public void checkRoll() throws IOException {
-        if (cos == null || cos.getCount() >= maxSize) {
-            close();
+        if (cos == null || cos.bytes >= maxSize) {
+            close();// start new
         }
     }
 
     private OutputStream write() throws IOException {
         if (cos == null) {
-            // TODO play with buffersize, I think we want them real big, when we go multi threaded
-            // to avoid collisions with read
             String filename = folder.resolve(prefix + fileCount++ + ".txt" + (zip ? ".zip" : "")).toString();
             // big buffer size is important as we do not want to write to disc to often
             current = cos = new CountingOutputStream(new BufferedOutputStream(new FileOutputStream(filename),
@@ -104,6 +101,9 @@ public class RollingOutputStream extends OutputStream {
                 current = new BufferedOutputStream(zos, 1024 * 1024);
             }
             System.out.println("Opening file" + filename);
+            if (fileCount > 100) {
+                throw new Error();
+            }
         }
         return current;
     }
@@ -124,5 +124,34 @@ public class RollingOutputStream extends OutputStream {
     @Override
     public void write(int b) throws IOException {
         write().write(b);
+    }
+
+    final class CountingOutputStream extends FilterOutputStream {
+
+        long bytes;
+
+        /**
+         * Wraps another output stream, counting the number of bytes written.
+         * 
+         * @param out
+         *            the output stream to be wrapped
+         */
+        public CountingOutputStream(OutputStream out) {
+            super(out);
+        }
+
+        @Override
+        public void write(byte[] b, int off, int len) throws IOException {
+            out.write(b, off, len);
+            bytes += len;
+            totalWritten.addAndGet(len);
+        }
+
+        @Override
+        public void write(int b) throws IOException {
+            out.write(b);
+            bytes++;
+            totalWritten.incrementAndGet();
+        }
     }
 }
