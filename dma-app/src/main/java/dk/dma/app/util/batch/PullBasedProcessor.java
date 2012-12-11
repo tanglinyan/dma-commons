@@ -15,17 +15,16 @@
  */
 package dk.dma.app.util.batch;
 
+import com.google.common.base.Supplier;
+
 import dk.dma.app.util.Processor;
 
 /**
  * 
  * @author Kasper Nielsen
  */
-public abstract class BatchProcessor<T, S> extends Processor<S> {
+public abstract class PullBasedProcessor<F, T> extends Processor<Supplier<T>> {
+    public void start(F file) {}
 
-    public void startResource(T resource) throws Exception {};
-
-    public void stopResource(T resource, Throwable t) throws Exception {};
-
-    public void stop(Throwable t) throws Exception {};
+    public void stop(F file) {}
 }

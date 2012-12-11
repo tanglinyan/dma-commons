@@ -21,11 +21,13 @@ import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import javax.management.DynamicMBean;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 
+import com.google.common.util.concurrent.Service;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -46,6 +48,8 @@ public abstract class AbstractDmaApplication {
     volatile Injector injector;
 
     private final List<Module> modules = new ArrayList<>();
+
+    private final CopyOnWriteArrayList<Service> services = new CopyOnWriteArrayList<>();
 
     AbstractDmaApplication() {
         applicationName = getClass().getSimpleName();
@@ -87,6 +91,17 @@ public abstract class AbstractDmaApplication {
         return applicationName;
     }
 
+    protected <T extends Service> T addServiceAndStart(T service) {
+        addService(service);
+        service.start();
+        return service;
+    }
+
+    protected <T extends Service> T addService(T service) {
+        services.add(requireNonNull(service));
+        return service;
+    }
+
     protected abstract void run(Injector injector) throws Exception;
 
     protected void start() throws Exception {
@@ -95,6 +110,11 @@ public abstract class AbstractDmaApplication {
         // Management
         tryManage(this);
         run(i);
+        // Shutdown in reverse order
+        Collections.reverse(services);
+        for (Service s : services) {
+            s.stopAndWait();
+        }
     }
 
     private void tryManage(Object o) throws Exception {

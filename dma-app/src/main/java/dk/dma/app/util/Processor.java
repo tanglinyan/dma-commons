@@ -13,26 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package dk.dma.app.util.batch;
+package dk.dma.app.util;
 
-import java.io.IOException;
-import java.io.OutputStream;
+import static java.util.Objects.requireNonNull;
 
 /**
  * 
  * @author Kasper Nielsen
  */
-public interface ExportFunction<T> {
+public abstract class Processor<T> {
+    public abstract void process(T t) throws Exception;
 
-    ExportFunction<?> IGNORE = new Ignore<>();
+    public Processor<T> filter(final Filter<T> filter) {
+        requireNonNull(filter);
+        return new Processor<T>() {
 
-    void export(T msg, OutputStream os) throws IOException;
-
-}
-
-class Ignore<T> implements ExportFunction<T> {
-
-    /** {@inheritDoc} */
-    @Override
-    public void export(T msg, OutputStream os) {}
+            @Override
+            public void process(T t) throws Exception {
+                if (filter.accept(t)) {
+                    Processor.this.process(t);
+                }
+            }
+        };
+    }
 }

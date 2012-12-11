@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package dk.dma.app.util.batch;
+package dk.dma.app.util.io;
 
 import dk.dma.app.util.Processor;
 
@@ -21,11 +21,10 @@ import dk.dma.app.util.Processor;
  * 
  * @author Kasper Nielsen
  */
-public abstract class BatchProcessor<T, S> extends Processor<S> {
+public class RollingFileExporter<T> extends Processor<T> {
 
-    public void startResource(T resource) throws Exception {};
+    /** {@inheritDoc} */
+    @Override
+    public void process(T t) throws Exception {}
 
-    public void stopResource(T resource, Throwable t) throws Exception {};
-
-    public void stop(Throwable t) throws Exception {};
 }

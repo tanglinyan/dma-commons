@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package dk.dma.app.commandline;
+package dk.dma.app.importexport;
 
 import java.io.File;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import com.beust.jcommander.Parameter;
@@ -25,11 +23,12 @@ import com.beust.jcommander.ParametersDelegate;
 import com.google.inject.Injector;
 
 import dk.dma.app.AbstractCommandLineTool;
-import dk.dma.app.util.IoUtil;
-import dk.dma.app.util.batch.BatchProcessor;
-import dk.dma.app.util.batch.ExportFunction;
-import dk.dma.app.util.batch.Processor;
+import dk.dma.app.util.Filter;
 import dk.dma.app.util.batch.QueuePumper;
+import dk.dma.app.util.io.IoUtil;
+import dk.dma.app.util.io.OutputStreamSink;
+import dk.dma.app.util.io.PathSuppliers;
+import dk.dma.app.util.io.RollingOutputStream;
 import dk.dma.management.ManagedAttribute;
 
 /**
@@ -44,11 +43,17 @@ public abstract class AbstractFileExporter<T> extends AbstractCommandLineTool {
     @Parameter(names = "-destination", description = "Destination folder for Output")
     File destination = new File(".");
 
-    @Parameter(names = "-exporter", description = "The exporter class")
+    @Parameter(names = "-filter", description = "The filter class")
     protected String exporter;
 
     @ParametersDelegate
-    ExportFunction<T> exporterInstance;
+    Filter<T> filterInstance;
+
+    @Parameter(names = "-formatter", description = "The formatter class")
+    protected String formatter;
+
+    @ParametersDelegate
+    OutputStreamSink<T> formatterInstance;
 
     @Parameter(names = "-prefix", description = "The prefix of each file")
     protected String fileprefix = getClass().getSimpleName();
@@ -60,37 +65,31 @@ public abstract class AbstractFileExporter<T> extends AbstractCommandLineTool {
 
     @ManagedAttribute
     public long getNumberOfBytesWritten() {
-        return ros == null ? 0 : ros.totalWritten.get();
+        return ros == null ? 0 : ros.getTotalBytesWritten();
     }
 
     @ManagedAttribute
     public long getNumberOfMegaBytesWritten() {
-        return ros == null ? 0 : ros.totalWritten.get() / 1024 / 1024;
+        return getNumberOfBytesWritten() / 1024 / 1024;
     }
 
     @Override
     protected void run(Injector injector) throws Exception {
         IoUtil.validateFolderExist("Destination", destination);
 
-        try (RollingOutputStream ros = this.ros = new RollingOutputStream(destination.toPath(), fileprefix,
-                chunkSizeMB, !noZip)) {
-            QueuePumper<T> qp = new QueuePumper<>(new Processor<T>() {
-                @Override
-                public void process(T message) throws Exception {
-                    exporterInstance.export(message, IoUtil.notCloseable(ros));
-                    ros.checkRoll();
-                }
-            }, 10000);
+        try (RollingOutputStream ros = this.ros = new RollingOutputStream(PathSuppliers.increasingAbsolutePaths(
+                destination.toPath(), fileprefix, "txt"), !noZip)) {
+
+            QueuePumper<T> qp = new QueuePumper<>(ros.createProcessor(formatterInstance, chunkSizeMB * 1024L * 1024L)
+                    .filter(filterInstance), 10000);
 
             // We use a separate single thread to write messages, this is around 70 % faster when writing zip files.
             // Than just using a single thread
-            final ExecutorService es = Executors.newSingleThreadExecutor();
-            es.submit(qp);
-            traverseSourceData(qp);
-            es.shutdown();
-            es.awaitTermination(1, TimeUnit.HOURS);
+            qp.start();
+            // traverseSourceData(qp);
+            qp.shutdownAndAwaitTermination(5, TimeUnit.MINUTES);
         }
     }
 
-    protected abstract void traverseSourceData(BatchProcessor<T> producer) throws Exception;
+    // protected abstract void traverseSourceData(Processor<T> producer) throws Exception;
 }

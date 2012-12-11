@@ -15,17 +15,19 @@
  */
 package dk.dma.app.util.batch;
 
-import dk.dma.app.util.Processor;
-
 /**
  * 
  * @author Kasper Nielsen
  */
-public abstract class BatchProcessor<T, S> extends Processor<S> {
+public class PullBasedPumper<F, T> {
 
-    public void startResource(T resource) throws Exception {};
+    PullBasedPumper(PullBasedProcessor<F, T> processor) {
 
-    public void stopResource(T resource, Throwable t) throws Exception {};
+    }
 
-    public void stop(Throwable t) throws Exception {};
+    public void start(F file) {}
+
+    public void process(T t) {};
+
+    public void stop(F file) {}
 }

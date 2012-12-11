@@ -13,19 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package dk.dma.app.util.batch;
+package dk.dma.app.util.service;
 
-import dk.dma.app.util.Processor;
 
 /**
  * 
  * @author Kasper Nielsen
  */
-public abstract class BatchProcessor<T, S> extends Processor<S> {
+public abstract class AbstractStage<T> extends AbstractMessageProcessorService<T> {
 
-    public void startResource(T resource) throws Exception {};
+    /**
+     * @param queueSize
+     */
+    protected AbstractStage(int queueSize) {
+        super(queueSize);
+    }
 
-    public void stopResource(T resource, Throwable t) throws Exception {};
+    protected abstract void handleMessage(T message);
 
-    public void stop(Throwable t) throws Exception {};
+    /** {@inheritDoc} */
+    @Override
+    protected final void run() throws Exception {
+        executionThread = Thread.currentThread();
+        while (state() == State.RUNNING || !queue.isTerminated()) {
+            T t = takeInterruptable();
+            if (t != null) {
+                handleMessage(t);
+            }
+        }
+    }
 }

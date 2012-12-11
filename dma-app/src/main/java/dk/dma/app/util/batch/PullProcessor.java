@@ -15,10 +15,23 @@
  */
 package dk.dma.app.util.batch;
 
+import java.io.IOException;
+
+import com.google.common.base.Supplier;
+
 /**
  * 
  * @author Kasper Nielsen
  */
-public interface Processor<T> {
-    void process(T t) throws Exception;
+public abstract class PullProcessor<R, E> {
+
+    @SuppressWarnings("unused")
+    public void start() throws IOException {}
+
+    /** {@inheritDoc} */
+    @SuppressWarnings("unused")
+    public void stop() throws IOException {}
+
+    public abstract void processResource(R resource, Supplier<E> supplier);
+
 }

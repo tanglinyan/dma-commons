@@ -13,19 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package dk.dma.app.util.batch;
-
-import dk.dma.app.util.Processor;
+package dk.dma.app.util;
 
 /**
  * 
  * @author Kasper Nielsen
  */
-public abstract class BatchProcessor<T, S> extends Processor<S> {
-
-    public void startResource(T resource) throws Exception {};
-
-    public void stopResource(T resource, Throwable t) throws Exception {};
-
-    public void stop(Throwable t) throws Exception {};
+public interface Filter<T> {
+    boolean accept(T element);
 }

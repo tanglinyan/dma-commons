@@ -15,6 +15,8 @@
  */
 package dk.dma.app;
 
+import com.google.inject.Injector;
+
 /**
  * 
  * @author Kasper Nielsen
@@ -22,6 +24,16 @@ package dk.dma.app;
 public abstract class AbstractDaemon extends AbstractCommandLineTool {
 
     // Like a command tools, but keeps going and has a shutdown hook
+
+    /** {@inheritDoc} */
+    @Override
+    protected final void run(Injector injector) throws Exception {
+        runDaemon(injector);
+        Thread.sleep(1000000000000000000L);
+        // Await on Ctrl-C, or all service exited
+    }
+
+    protected abstract void runDaemon(Injector injector) throws Exception;
 
     /** Creates a new AbstractDaemon */
     public AbstractDaemon() {
@@ -37,5 +49,5 @@ public abstract class AbstractDaemon extends AbstractCommandLineTool {
     }
 
     // Install shutdown hooks
-    protected abstract void externalShutdown();
+    protected void externalShutdown() {};
 }
