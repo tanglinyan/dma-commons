@@ -84,7 +84,7 @@ public abstract class AbstractCommandLineTool extends AbstractDmaApplication {
             jc.setProgramName(getApplicationName());
             jc.usage();
         } else {
-            start();
+            execute();
         }
     }
 }

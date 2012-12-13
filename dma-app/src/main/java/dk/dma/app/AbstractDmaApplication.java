@@ -91,20 +91,20 @@ public abstract class AbstractDmaApplication {
         return applicationName;
     }
 
-    protected <T extends Service> T addServiceAndStart(T service) {
-        addService(service);
+    protected <T extends Service> T start(T service) {
+        services.add(requireNonNull(service));
         service.start();
         return service;
     }
 
     protected <T extends Service> T addService(T service) {
-        services.add(requireNonNull(service));
+
         return service;
     }
 
     protected abstract void run(Injector injector) throws Exception;
 
-    protected void start() throws Exception {
+    void execute() throws Exception {
         defaultModule();
         Injector i = Guice.createInjector(modules);
         // Management
