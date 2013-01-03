@@ -22,7 +22,7 @@ import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
-import dk.dma.app.util.function.Filter;
+import dk.dma.app.util.function.Predicate;
 
 /**
  * <p>
@@ -51,17 +51,111 @@ public abstract class OutputStreamSink<T> {
      *            the filter to test each message against
      * @return a new filtered sink
      */
-    public final OutputStreamSink<T> filter(final Filter<T> filter) {
+    public final OutputStreamSink<T> filter(final Predicate<T> filter) {
         requireNonNull(filter);
         return new OutputStreamSink<T>() {
             @Override
             public void process(OutputStream stream, T message) throws IOException {
-                if (filter.accept(message)) {
+                if (filter.test(message)) {
                     OutputStreamSink.this.process(stream, message);
+                }
+            }
+
+            @Override
+            public void header(OutputStream stream) throws IOException {
+                OutputStreamSink.this.header(stream);
+            }
+
+            @Override
+            public void footer(OutputStream stream) throws IOException {
+                OutputStreamSink.this.footer(stream);
+            }
+
+        };
+    }
+
+    // Returns a new sink that closes the stream
+    public final OutputStreamSink<T> closeWhenFooterWritten() {
+        return new OutputStreamSink<T>() {
+            @Override
+            public void process(OutputStream stream, T message) throws IOException {
+                OutputStreamSink.this.process(stream, message);
+            }
+
+            @Override
+            public void header(OutputStream stream) throws IOException {
+                OutputStreamSink.this.header(stream);
+            }
+
+            @Override
+            public void footer(OutputStream stream) throws IOException {
+                try {
+                    OutputStreamSink.this.footer(stream);
+                } finally {
+                    stream.close();
                 }
             }
         };
     }
+
+    public final OutputStreamSink<T> writeHeaderAscii(String header) {
+        return writeHeader(header, StandardCharsets.US_ASCII);
+    }
+
+    public final OutputStreamSink<T> writeHeader(final String header, final Charset charset) {
+        requireNonNull(header);
+        requireNonNull(charset);
+        return new OutputStreamSink<T>() {
+            @Override
+            public void process(OutputStream stream, T message) throws IOException {
+                OutputStreamSink.this.process(stream, message);
+            }
+
+            @Override
+            public void header(OutputStream stream) throws IOException {
+                stream.write(header.getBytes(charset));
+                OutputStreamSink.this.header(stream);
+            }
+
+            @Override
+            public void footer(OutputStream stream) throws IOException {
+                OutputStreamSink.this.footer(stream);
+            }
+        };
+    }
+
+    public final OutputStreamSink<T> writeFooterAscii(String footer) {
+        return writeFooter(footer, StandardCharsets.US_ASCII);
+    }
+
+    public final OutputStreamSink<T> writeFooter(final String footer, final Charset charset) {
+        requireNonNull(footer);
+        requireNonNull(charset);
+        return new OutputStreamSink<T>() {
+            @Override
+            public void process(OutputStream stream, T message) throws IOException {
+                OutputStreamSink.this.process(stream, message);
+            }
+
+            @Override
+            public void header(OutputStream stream) throws IOException {
+                OutputStreamSink.this.header(stream);
+            }
+
+            @Override
+            public void footer(OutputStream stream) throws IOException {
+                System.out.println("WRITE FOOT");
+                OutputStreamSink.this.footer(stream);
+                stream.write(footer.getBytes(charset));
+            }
+        };
+    }
+
+    @SuppressWarnings("unused")
+    public void header(OutputStream stream) throws IOException {}
+
+    @SuppressWarnings("unused")
+    public void footer(OutputStream stream) throws IOException {}
 
     public abstract void process(OutputStream stream, T message) throws IOException;
 

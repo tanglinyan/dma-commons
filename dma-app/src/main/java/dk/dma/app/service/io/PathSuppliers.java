@@ -26,7 +26,7 @@ import com.google.common.base.Supplier;
  * 
  * @author Kasper Nielsen
  */
-public class PathSuppliers {
+class PathSuppliers {
     static final Supplier<Path> EXPLICIT_ROLL = new Supplier<Path>() {
         @Override
         public Path get() {
@@ -45,7 +45,7 @@ public class PathSuppliers {
      * @param postfix
      * @return
      */
-    public static Supplier<Path> increasingAbsolutePaths(final Path root, final String prefix, final String postfix) {
+    static Supplier<Path> increasingAbsolutePaths(final Path root, final String prefix, final String postfix) {
         requireNonNull(root);
         requireNonNull(prefix);
         requireNonNull(postfix);

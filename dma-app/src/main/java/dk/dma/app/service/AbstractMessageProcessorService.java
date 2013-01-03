@@ -18,10 +18,11 @@ package dk.dma.app.service;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
 import com.google.common.util.concurrent.AbstractExecutionThreadService;
 
-import deprecated.ShutdownBlockingQueue;
+import dk.dma.app.management.ManagedAttribute;
 
 /**
  * supporting orderly shutdown.
@@ -35,6 +36,7 @@ public abstract class AbstractMessageProcessorService<T> extends AbstractExecuti
     private volatile boolean isInInterruptableBlock;
 
     final ShutdownBlockingQueue<Object> queue;
+    final AtomicLong numberProcessed = new AtomicLong();
 
     protected AbstractMessageProcessorService(int queueSize) {
         queue = new ShutdownBlockingQueue<>(queueSize);
@@ -43,6 +45,11 @@ public abstract class AbstractMessageProcessorService<T> extends AbstractExecuti
     @SuppressWarnings("unchecked")
     public BlockingQueue<T> getInputQueue() {
         return (BlockingQueue<T>) queue;
+    }
+
+    @ManagedAttribute
+    public long getNumberOfMessagesProcessed() {
+        return numberProcessed.get();
     }
 
     protected abstract void handleMessages(List<T> messages) throws Exception;
@@ -98,6 +105,7 @@ public abstract class AbstractMessageProcessorService<T> extends AbstractExecuti
     /** {@inheritDoc} */
     @Override
     protected final synchronized void triggerShutdown() {
+        queue.shutdown();
         Thread t = executionThread;
         if (t != null) {
             if (isInInterruptableBlock) {
@@ -105,5 +113,6 @@ public abstract class AbstractMessageProcessorService<T> extends AbstractExecuti
                 t.interrupt();
             }
         }
+
     }
 }

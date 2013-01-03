@@ -31,7 +31,7 @@ import com.google.common.base.Supplier;
 
 import dk.dma.app.io.IoUtil;
 import dk.dma.app.io.OutputStreamSink;
-import dk.dma.app.util.function.Processor;
+import dk.dma.app.util.function.EBlock;
 
 /**
  * 
@@ -58,16 +58,12 @@ class RollingOutputStream extends OutputStream {
     /** The number of bytes that has been written to the current file. */
     final AtomicLong written = new AtomicLong();
 
-    /** Whether or not the output file should be zipped. */
-    private final boolean zip;
-
-    public RollingOutputStream(boolean zip) {
-        this(PathSuppliers.EXPLICIT_ROLL, zip);
+    public RollingOutputStream() {
+        this(PathSuppliers.EXPLICIT_ROLL);
     }
 
-    public RollingOutputStream(Supplier<Path> filePathSupplier, boolean zip) {
+    public RollingOutputStream(Supplier<Path> filePathSupplier) {
         this.filePathSupplier = requireNonNull(filePathSupplier);
-        this.zip = zip;
     }
 
     /** {@inheritDoc} */
@@ -83,14 +79,14 @@ class RollingOutputStream extends OutputStream {
         }
     }
 
-    public <T> Processor<T> createProcessor(final OutputStreamSink<T> sink, final long chunkSize) {
+    public <T> EBlock<T> createProcessor(final OutputStreamSink<T> sink, final long chunkSize) {
         requireNonNull(sink);
         if (chunkSize < 1) {
             throw new IllegalArgumentException("Chunksize must be at least 1, was " + chunkSize);
         }
-        return new Processor<T>() {
+        return new EBlock<T>() {
             @Override
-            public void process(T message) throws Exception {
+            public void accept(T message) throws Exception {
                 sink.process(IoUtil.notCloseable(RollingOutputStream.this), message);
                 rollIfGreaterThan(chunkSize);
             }
@@ -150,20 +146,21 @@ class RollingOutputStream extends OutputStream {
         if (current == null) {
             written.set(0);
             Path p = nextPath == null ? filePathSupplier.get() : nextPath;
-            finalPath = zip ? p.resolveSibling(p.getFileName().toString() + ".zip") : p;
-            nextPath = finalPath.resolveSibling(finalPath.getFileName().toString() + ".tmp");
-
+            boolean zip = p.getFileName().toString().endsWith(".zip");
+            finalPath = p;
+            nextPath = p.resolveSibling(p.getFileName().toString() + ".tmp");
             // big buffer size is important as we do not want to write to disc to often
-
+            Files.createDirectories(nextPath.getParent());
             current = new CountingOutputStream(new BufferedOutputStream(Files.newOutputStream(nextPath), 1024 * 1024));
             if (zip) {
                 ZipOutputStream zos = new ZipOutputStream(current);
-                zos.putNextEntry(new ZipEntry(p.getFileName().toString()));
+                zos.putNextEntry(new ZipEntry(p.getFileName().toString().replace(".zip", "")));
                 // big buffer size is important as we do not want to zip to often
                 current = new BufferedOutputStream(zos, 1024 * 1024);
             }
-            if (nextPath.toAbsolutePath().toString().length() > 100) {
-                throw new Error();
+            // A previous bug
+            if (nextPath.toAbsolutePath().toString().length() > 200) {
+                throw new Error(nextPath.toAbsolutePath().toString());
             }
         }
         return current;

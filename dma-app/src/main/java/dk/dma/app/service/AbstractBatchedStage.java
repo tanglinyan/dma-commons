@@ -48,6 +48,7 @@ public abstract class AbstractBatchedStage<T> extends AbstractMessageProcessorSe
                 list.add(t);
                 queue.drainTo((Collection<? super Object>) list.subList(1, list.size()), maxBatchSize - 1);
                 handleMessages(list);
+                numberProcessed.addAndGet(list.size());
             }
         }
     }

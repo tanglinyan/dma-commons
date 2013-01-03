@@ -15,6 +15,7 @@
  */
 package dk.dma.app;
 
+import com.google.common.util.concurrent.Service;
 import com.google.inject.Injector;
 
 /**
@@ -29,7 +30,9 @@ public abstract class AbstractDaemon extends AbstractCommandLineTool {
     @Override
     protected final void run(Injector injector) throws Exception {
         runDaemon(injector);
-        Thread.sleep(1000000000000000000L);
+        for (Service s : services) {
+            awaitServiceStopped(s);
+        }
         // Await on Ctrl-C, or all service exited
     }
 
@@ -37,7 +40,11 @@ public abstract class AbstractDaemon extends AbstractCommandLineTool {
 
     /** Creates a new AbstractDaemon */
     public AbstractDaemon() {
-        super();
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            public void run() {
+                shutdown();
+            }
+        });
     }
 
     /**

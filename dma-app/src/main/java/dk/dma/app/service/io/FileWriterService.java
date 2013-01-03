@@ -18,18 +18,20 @@ package dk.dma.app.service.io;
 import static java.util.Objects.requireNonNull;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.common.base.Objects;
 
 import dk.dma.app.io.OutputStreamSink;
 import dk.dma.app.service.AbstractBatchedStage;
-import dk.dma.app.util.function.LongMapper;
+import dk.dma.app.util.function.LongFunction;
 
 /**
  * 
@@ -37,15 +39,17 @@ import dk.dma.app.util.function.LongMapper;
  */
 public class FileWriterService<T> extends AbstractBatchedStage<T> {
 
-    private final String filename;
+    private static final Logger LOG = LoggerFactory.getLogger(FileWriterService.class);
 
-    private final long maxSize;
+    final String filename;
+
+    final long maxSize;
 
     private final Path root;
 
     private final OutputStreamSink<T> sink;
 
-    private final LongMapper<T> toTime;
+    private final LongFunction<T> toTime;
 
     private Path currentPath;
 
@@ -59,16 +63,15 @@ public class FileWriterService<T> extends AbstractBatchedStage<T> {
      * @param queueSize
      * @param maxBatchSize
      */
-    FileWriterService(Path root, String filename, OutputStreamSink<T> sink, LongMapper<T> toTime, long maxSize) {
+    FileWriterService(Path root, String filename, OutputStreamSink<T> sink, LongFunction<T> toTime, long maxSize) {
         super(100000, 100);
         this.root = requireNonNull(root);
         this.filename = requireNonNull(filename);
         this.sink = requireNonNull(sink);
         this.toTime = toTime;
         this.maxSize = maxSize;
-        boolean zip = filename.contains(".zip");
         sdf = toTime == null ? null : new SimpleDateFormat(filename);
-        ros = new RollingOutputStream(toTime == null ? PathSuppliers.EXPLICIT_ROLL : PathSuppliers.EXPLICIT_ROLL, zip);
+        ros = new RollingOutputStream(toTime == null ? PathSuppliers.EXPLICIT_ROLL : PathSuppliers.EXPLICIT_ROLL);
     }
 
     /**
@@ -80,7 +83,7 @@ public class FileWriterService<T> extends AbstractBatchedStage<T> {
             if (toTime == null) {
                 throw new UnsupportedOperationException();
             } else {
-                long time = toTime.map(t);
+                long time = toTime.applyAsLong(t);
                 if (time < lastTime) {
                     throw new IllegalStateException("Cannot go backwards, last time =" + lastTime + ", currenttime="
                             + time);
@@ -90,7 +93,7 @@ public class FileWriterService<T> extends AbstractBatchedStage<T> {
                     if (!Objects.equal(p, currentPath)) {
                         ros.roll(p);
                         currentPath = p;
-                        Files.createDirectories(p);
+                        LOG.info("Opening file " + p + " for backup");
                     }
                 }
                 sink.process(ros.getPublicStream(), t);
@@ -100,17 +103,17 @@ public class FileWriterService<T> extends AbstractBatchedStage<T> {
     }
 
     public static <T> FileWriterService<T> dateService(Path root, String filename, OutputStreamSink<T> sink) {
-        return new FileWriterService<>(root, validateFilename(root, filename), sink, new LongMapper<T>() {
+        return new FileWriterService<>(root, validateFilename(root, filename), sink, new LongFunction<T>() {
 
             @Override
-            public long map(T element) {
+            public long applyAsLong(T element) {
                 return System.currentTimeMillis();
             }
         }, Long.MAX_VALUE);
     }
 
     public static <T> FileWriterService<T> dateService(Path root, String filename, OutputStreamSink<T> sink,
-            LongMapper<T> toTime) {
+            LongFunction<T> toTime) {
         return new FileWriterService<>(root, validateFilename(root, filename), sink, requireNonNull(toTime),
                 Long.MAX_VALUE);
     }

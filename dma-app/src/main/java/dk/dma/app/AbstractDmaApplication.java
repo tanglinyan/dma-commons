@@ -22,19 +22,22 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CountDownLatch;
 
 import javax.management.DynamicMBean;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 
+import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.Service;
+import com.google.common.util.concurrent.Service.State;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.name.Names;
 
-import dk.dma.management.Managements;
+import dk.dma.app.management.Managements;
 
 /**
  * 
@@ -49,7 +52,7 @@ public abstract class AbstractDmaApplication {
 
     private final List<Module> modules = new ArrayList<>();
 
-    private final CopyOnWriteArrayList<Service> services = new CopyOnWriteArrayList<>();
+    final CopyOnWriteArrayList<Service> services = new CopyOnWriteArrayList<>();
 
     AbstractDmaApplication() {
         applicationName = getClass().getSimpleName();
@@ -93,12 +96,7 @@ public abstract class AbstractDmaApplication {
 
     protected <T extends Service> T start(T service) {
         services.add(requireNonNull(service));
-        service.start();
-        return service;
-    }
-
-    protected <T extends Service> T addService(T service) {
-
+        service.startAndWait();
         return service;
     }
 
@@ -114,6 +112,48 @@ public abstract class AbstractDmaApplication {
         Collections.reverse(services);
         for (Service s : services) {
             s.stopAndWait();
+        }
+    }
+
+    protected void shutdown() {
+        for (Service s : services) {
+            s.stopAndWait();
+        }
+    }
+
+    void awaitServiceStopped(Service s) throws InterruptedException {
+        State st = s.state();
+        CountDownLatch cdl = null;
+        while (st == State.RUNNING || st == State.NEW) {
+            if (cdl != null) {
+                cdl.await();
+            }
+            final CountDownLatch c = cdl = new CountDownLatch(1);
+            s.addListener(new Service.Listener() {
+                public void terminated(State from) {
+                    c.countDown();
+                }
+
+                @Override
+                public void stopping(State from) {
+                    c.countDown();
+                }
+
+                @Override
+                public void starting() {
+                    c.countDown();
+                }
+
+                @Override
+                public void running() {
+                    c.countDown();
+                }
+
+                @Override
+                public void failed(State from, Throwable failure) {
+                    c.countDown();
+                }
+            }, MoreExecutors.sameThreadExecutor());
         }
     }
 
