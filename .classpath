@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="dma-app/src/main/java"/>
-	<classpathentry kind="src" path="dma-app/src/test/java"/>
 	<classpathentry kind="src" path="dma-app-management/src/main/java"/>
 	<classpathentry kind="src" path="dma-app-management/src/test/java"/>
 	<classpathentry kind="src" path="dma-tracker/src/main/java"/>
