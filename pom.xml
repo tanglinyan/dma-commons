@@ -18,6 +18,7 @@
 
   <modules>
     <module>dma-app</module>
+    <module>dma-tracker</module>
     <module>dma-app-management</module>
   </modules>
 

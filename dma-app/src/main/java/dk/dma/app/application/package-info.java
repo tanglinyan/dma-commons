@@ -17,4 +17,4 @@
  *
  * @author Kasper Nielsen
  */
-package dk.dma.app;
+package dk.dma.app.application;

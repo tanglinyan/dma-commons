@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="dma-app/src/main/java"/>
+	<classpathentry kind="src" path="dma-app/src/test/java"/>
 	<classpathentry kind="src" path="dma-app-management/src/main/java"/>
 	<classpathentry kind="src" path="dma-app-management/src/test/java"/>
-	<classpathentry kind="src" path="dma-app/src/test/java"/>
+	<classpathentry kind="src" path="dma-tracker/src/main/java"/>
 	<classpathentry exported="true" kind="var" path="M2_REPO/javax/inject/javax.inject/1/javax.inject-1.jar" sourcepath="M2_REPO/javax/inject/javax.inject/1/javax.inject-1-sources.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry exported="true" kind="var" path="M2_REPO/org/slf4j/slf4j-api/1.6.6/slf4j-api-1.6.6.jar"/>
@@ -14,5 +15,6 @@
 	<classpathentry exported="true" kind="var" path="M2_REPO/junit/junit/4.10/junit-4.10.jar" sourcepath="M2_REPO/junit/junit/4.10/junit-4.10-sources.jar"/>
 	<classpathentry exported="true" kind="var" path="M2_REPO/org/hamcrest/hamcrest-core/1.1/hamcrest-core-1.1.jar" sourcepath="M2_REPO/org/hamcrest/hamcrest-core/1.1/hamcrest-core-1.1-sources.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/eNav-api"/>
+	<classpathentry kind="var" path="M2_REPO/dk/dma/3rdparty/jsr166e/10.01.2013/jsr166e-10.01.2013.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

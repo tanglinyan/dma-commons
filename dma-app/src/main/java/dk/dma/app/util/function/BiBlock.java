@@ -13,8 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package dk.dma.app.util.function;
+
+
 /**
- *
+ * An operation upon an input object. The operation may modify that object or external state (other objects).
+ * 
  * @author Kasper Nielsen
  */
-package dk.dma.app.annotations;
+public abstract class BiBlock<L, R> {
+
+    public abstract void accept(L l, R r);
+
+}
