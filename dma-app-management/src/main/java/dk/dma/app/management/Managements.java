@@ -33,9 +33,13 @@ public class Managements {
     public static DynamicMBean tryCreate(Object o) {
         ManagedResource mr = o.getClass().getAnnotation(ManagedResource.class);
         if (mr != null) {
-            return DefaultMBean.createFrom(o, mr);
+            return tryCreate(o, getName(o.getClass(), mr));
         }
         return null;
+    }
+
+    public static DynamicMBean tryCreate(Object o, String name) {
+        return DefaultMBean.createFrom(o, name);
     }
 
     /**

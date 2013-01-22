@@ -27,7 +27,7 @@ import dk.dma.app.management.ManagedAttribute;
 import dk.dma.app.util.function.BiBlock;
 import dk.dma.enav.model.geometry.Circle;
 import dk.dma.enav.model.geometry.PositionTime;
-import dk.dma.enav.model.geometry.Shape;
+import dk.dma.enav.model.geometry.Area;
 
 /**
  * An object that tracks positions.
@@ -57,7 +57,7 @@ public class PositionTracker<T> implements Runnable {
      * @param block
      *            the callback
      */
-    public void forEachWithinArea(final Shape shape, final BiBlock<T, PositionTime> block) {
+    public void forEachWithinArea(final Area shape, final BiBlock<T, PositionTime> block) {
         requireNonNull(shape, "shapeis null");
         requireNonNull(block, "block is null");
         targets.forEachInParallel(new BiAction<T, PositionTime>() {
@@ -95,7 +95,7 @@ public class PositionTracker<T> implements Runnable {
      *            the area of interest
      * @return a map of all tracked objects within the area as keys and their latest position as the value
      */
-    public Map<T, PositionTime> getTargetsWithin(final Shape shape) {
+    public Map<T, PositionTime> getTargetsWithin(final Area shape) {
         final ConcurrentHashMapV8<T, PositionTime> result = new ConcurrentHashMapV8<>();
         forEachWithinArea(shape, new BiBlock<T, PositionTime>() {
             public void accept(T a, PositionTime b) {
@@ -132,7 +132,7 @@ public class PositionTracker<T> implements Runnable {
         this.latest = current;
     }
 
-    public Subscription<T> subscribe(Shape shape, PositionUpdateHandler<? super T> handler) {
+    public Subscription<T> subscribe(Area shape, PositionUpdateHandler<? super T> handler) {
         return subscribe(shape, handler, 100);
     }
 
@@ -144,11 +144,11 @@ public class PositionTracker<T> implements Runnable {
      *            where a boat sails on a boundary line and keeps changing from being inside to outside of it
      * @return
      */
-    public Subscription<T> subscribe(Shape shape, PositionUpdateHandler<? super T> handler, double slack) {
+    public Subscription<T> subscribe(Area shape, PositionUpdateHandler<? super T> handler, double slack) {
         if (slack < 0) {
             throw new IllegalArgumentException("Slack must be non-negative, was " + slack);
         }
-        Shape exitShape = requireNonNull(shape, "shape is null");
+        Area exitShape = requireNonNull(shape, "shape is null");
         if (slack > 0) {
             if (shape instanceof Circle) {
                 Circle c = (Circle) shape;

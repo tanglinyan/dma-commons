@@ -25,7 +25,7 @@ import jsr166e.ConcurrentHashMapV8.Action;
 import dk.dma.app.util.function.Block;
 import dk.dma.enav.model.geometry.Position;
 import dk.dma.enav.model.geometry.PositionTime;
-import dk.dma.enav.model.geometry.Shape;
+import dk.dma.enav.model.geometry.Area;
 
 /**
  * A subscription is created for each {@link PositionUpdateHandler}. It is to use unsubscribe ({@link #cancel()}).
@@ -41,15 +41,15 @@ public class Subscription<T> {
     private final PositionTracker<T> tracker;
 
     /** The shape we look at to see if we are entering the area of interest. */
-    private final Shape shapeEntering;
+    private final Area shapeEntering;
 
     /** The shape we look at to see if we are exiting the area of interest. */
-    private final Shape shapeExiting;
+    private final Area shapeExiting;
 
     /** The handler that should be called whenever objects are entering/exiting. */
     private final PositionUpdateHandler<? super T> handler;
 
-    Subscription(PositionTracker<T> tracker, PositionUpdateHandler<? super T> handler, Shape shape, Shape exitShape) {
+    Subscription(PositionTracker<T> tracker, PositionUpdateHandler<? super T> handler, Area shape, Area exitShape) {
         this.tracker = requireNonNull(tracker);
         this.shapeEntering = requireNonNull(shape);
         this.shapeExiting = requireNonNull(exitShape);

@@ -155,7 +155,7 @@ class DefaultMBean implements DynamicMBean {
         return result;
     }
 
-    public static DefaultMBean createFrom(Object o, ManagedResource resource) {
+    public static DefaultMBean createFrom(Object o, String name) {
         Class<?> c = o.getClass();
         BeanInfo bi;
         try {
@@ -165,8 +165,7 @@ class DefaultMBean implements DynamicMBean {
             throw new IllegalArgumentException(e); // cannot happen
             // /CLOVER:ON
         }
-        return new DefaultMBean(Managements.getName(c, resource), Managements.getDescription(c),
-                DefaultManagedAttribute.fromPropertyDescriptors(bi.getPropertyDescriptors(), o),
-                DefaultManagedOperation.getOperationFromMethods(o, c.getMethods()));
+        return new DefaultMBean(name, Managements.getDescription(c), DefaultManagedAttribute.fromPropertyDescriptors(
+                bi.getPropertyDescriptors(), o), DefaultManagedOperation.getOperationFromMethods(o, c.getMethods()));
     }
 }
