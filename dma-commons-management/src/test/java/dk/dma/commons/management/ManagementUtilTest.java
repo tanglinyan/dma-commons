@@ -19,10 +19,6 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-import dk.dma.commons.management.Description;
-import dk.dma.commons.management.ManagedResource;
-import dk.dma.commons.management.Managements;
-
 /**
  * 
  * @author Kasper Nielsen

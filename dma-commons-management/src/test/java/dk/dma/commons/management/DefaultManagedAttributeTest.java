@@ -32,8 +32,6 @@ import javax.management.ReflectionException;
 import org.junit.Before;
 import org.junit.Test;
 
-import dk.dma.commons.management.DefaultManagedAttribute;
-import dk.dma.commons.management.ManagedAttribute;
 import dk.dma.commons.management.stubs.VariousAttributes;
 
 /**

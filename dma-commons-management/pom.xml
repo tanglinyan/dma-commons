@@ -20,14 +20,14 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>dk.dma.app</groupId>
-    <artifactId>dma-app-parent</artifactId>
+    <groupId>dk.dma.commons</groupId>
+    <artifactId>dma-commons-parent</artifactId>
     <version>0.1-SNAPSHOT</version>
   </parent>
 
-  <artifactId>dma-app-management</artifactId>
-  <name>DMA App Management</name>
-  <description>The DMA App Management package</description>
+  <artifactId>dma-commons-management</artifactId>
+  <name>DMA Commons Management</name>
+  <description>The DMA Commons package</description>
 
   <dependencies>
     <dependency>

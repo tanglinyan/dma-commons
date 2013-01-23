@@ -27,8 +27,6 @@ import javax.management.ReflectionException;
 import org.junit.Before;
 import org.junit.Test;
 
-import dk.dma.commons.management.DefaultManagedOperation;
-import dk.dma.commons.management.OperationKey;
 import dk.dma.commons.management.stubs.OperationStub;
 
 /**

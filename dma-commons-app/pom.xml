@@ -4,15 +4,15 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>dk.dma.app</groupId>
-    <artifactId>dma-app-parent</artifactId>
+    <groupId>dk.dma.commons</groupId>
+    <artifactId>dma-commons-parent</artifactId>
     <version>0.1-SNAPSHOT</version>
   </parent>
 
-  <artifactId>dma-app</artifactId>
+  <artifactId>dma-commons-app</artifactId>
   <version>0.1-SNAPSHOT</version>
   <name>DMA App</name>
-  <description>The DMA App framework</description>
+  <description>The DMA Commons App framework</description>
 
   <dependencies>
   
@@ -24,7 +24,7 @@
   
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>dma-app-management</artifactId>
+      <artifactId>dma-commons-management</artifactId>
       <version>${project.version}</version>
     </dependency>
 
