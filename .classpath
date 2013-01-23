@@ -4,6 +4,7 @@
 	<classpathentry kind="src" path="dma-commons-management/src/main/java"/>
 	<classpathentry kind="src" path="dma-commons-management/src/test/java"/>
 	<classpathentry kind="src" path="dma-commons-tracker/src/main/java"/>
+	<classpathentry kind="src" path="dma-commons-util/src/main/java"/>
 	<classpathentry exported="true" kind="var" path="M2_REPO/javax/inject/javax.inject/1/javax.inject-1.jar" sourcepath="M2_REPO/javax/inject/javax.inject/1/javax.inject-1-sources.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry exported="true" kind="var" path="M2_REPO/org/slf4j/slf4j-api/1.6.6/slf4j-api-1.6.6.jar"/>

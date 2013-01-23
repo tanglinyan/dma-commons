@@ -20,6 +20,7 @@
     <module>dma-commons-app</module>
     <module>dma-commons-management</module>
     <module>dma-commons-tracker</module>
+    <module>dma-commons-util</module>
   </modules>
 
   <repositories>
