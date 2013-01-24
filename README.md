@@ -1,4 +1,4 @@
-dma-app
-=======
+dma-commons
+===========
 
-A small application framework
+Common library for DMA projects
