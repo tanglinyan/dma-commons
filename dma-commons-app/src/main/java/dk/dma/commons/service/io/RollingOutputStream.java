@@ -18,7 +18,6 @@ package dk.dma.commons.service.io;
 import static java.util.Objects.requireNonNull;
 
 import java.io.BufferedOutputStream;
-import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
@@ -27,9 +26,8 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import com.google.common.base.Supplier;
-
 import dk.dma.commons.util.function.EBlock;
+import dk.dma.commons.util.io.CountingOutputStream;
 import dk.dma.commons.util.io.IoUtil;
 import dk.dma.commons.util.io.OutputStreamSink;
 
@@ -41,9 +39,6 @@ class RollingOutputStream extends OutputStream {
 
     /** The current outputstream we are writing to. */
     private OutputStream current;
-
-    /** Supplier for creating the next path that should be written. */
-    private final Supplier<Path> filePathSupplier;
 
     private volatile Path finalPath;
 
@@ -57,14 +52,6 @@ class RollingOutputStream extends OutputStream {
 
     /** The number of bytes that has been written to the current file. */
     final AtomicLong written = new AtomicLong();
-
-    public RollingOutputStream() {
-        this(PathSuppliers.EXPLICIT_ROLL);
-    }
-
-    public RollingOutputStream(Supplier<Path> filePathSupplier) {
-        this.filePathSupplier = requireNonNull(filePathSupplier);
-    }
 
     /** {@inheritDoc} */
     @Override
@@ -109,8 +96,38 @@ class RollingOutputStream extends OutputStream {
         return publicStream;
     }
 
+    /**
+     * Returns the total number of bytes written.
+     * 
+     * @return the total number of bytes written
+     */
     public long getTotalBytesWritten() {
         return totalWritten.get();
+    }
+
+    private OutputStream lazyOutput() throws IOException {
+        if (current == null) {
+            written.set(0);
+            Path p = nextPath;
+            boolean zip = p.getFileName().toString().endsWith(".zip");
+            finalPath = p;
+            nextPath = p.resolveSibling(p.getFileName().toString() + ".tmp");
+            // big buffer size is important as we do not want to write to disc to often
+            Files.createDirectories(nextPath.getParent());
+            current = new BufferedOutputStream(new CountingOutputStream(new CountingOutputStream(
+                    Files.newOutputStream(nextPath), written), totalWritten), 1024 * 1024);
+            if (zip) {
+                ZipOutputStream zos = new ZipOutputStream(current);
+                zos.putNextEntry(new ZipEntry(p.getFileName().toString().replace(".zip", "")));
+                // big buffer size is important as we do not want to zip to often
+                current = new BufferedOutputStream(zos, 1024 * 1024);
+            }
+            // A previous bug
+            if (nextPath.toAbsolutePath().toString().length() > 200) {
+                throw new Error(nextPath.toAbsolutePath().toString());
+            }
+        }
+        return current;
     }
 
     /**
@@ -142,64 +159,15 @@ class RollingOutputStream extends OutputStream {
         }
     }
 
-    private OutputStream write() throws IOException {
-        if (current == null) {
-            written.set(0);
-            Path p = nextPath == null ? filePathSupplier.get() : nextPath;
-            boolean zip = p.getFileName().toString().endsWith(".zip");
-            finalPath = p;
-            nextPath = p.resolveSibling(p.getFileName().toString() + ".tmp");
-            // big buffer size is important as we do not want to write to disc to often
-            Files.createDirectories(nextPath.getParent());
-            current = new CountingOutputStream(new BufferedOutputStream(Files.newOutputStream(nextPath), 1024 * 1024));
-            if (zip) {
-                ZipOutputStream zos = new ZipOutputStream(current);
-                zos.putNextEntry(new ZipEntry(p.getFileName().toString().replace(".zip", "")));
-                // big buffer size is important as we do not want to zip to often
-                current = new BufferedOutputStream(zos, 1024 * 1024);
-            }
-            // A previous bug
-            if (nextPath.toAbsolutePath().toString().length() > 200) {
-                throw new Error(nextPath.toAbsolutePath().toString());
-            }
-        }
-        return current;
-    }
-
     /** {@inheritDoc} */
     @Override
     public void write(byte[] b, int off, int len) throws IOException {
-        write().write(b, off, len);
+        lazyOutput().write(b, off, len);
     }
 
     /** {@inheritDoc} */
     @Override
     public void write(int b) throws IOException {
-        write().write(b);
-    }
-
-    /**
-     * Wraps another output stream, counting the number of bytes written. We need a seperate class because we might
-     * append a zip stream.
-     */
-    final class CountingOutputStream extends FilterOutputStream {
-
-        CountingOutputStream(OutputStream out) {
-            super(out);
-        }
-
-        @Override
-        public void write(byte[] b, int off, int len) throws IOException {
-            out.write(b, off, len);
-            written.addAndGet(len);
-            totalWritten.addAndGet(len);
-        }
-
-        @Override
-        public void write(int b) throws IOException {
-            out.write(b);
-            written.incrementAndGet();
-            totalWritten.incrementAndGet();
-        }
+        lazyOutput().write(b);
     }
 }

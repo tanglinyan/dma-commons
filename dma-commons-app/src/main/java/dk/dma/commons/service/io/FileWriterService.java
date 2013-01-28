@@ -71,7 +71,7 @@ public class FileWriterService<T> extends AbstractBatchedStage<T> {
         this.toTime = toTime;
         this.maxSize = maxSize;
         sdf = toTime == null ? null : new SimpleDateFormat(filename);
-        ros = new RollingOutputStream(toTime == null ? PathSuppliers.EXPLICIT_ROLL : PathSuppliers.EXPLICIT_ROLL);
+        ros = new RollingOutputStream();
     }
 
     /**
@@ -123,7 +123,7 @@ public class FileWriterService<T> extends AbstractBatchedStage<T> {
         return new FileWriterService<>(root, filename, sink, null, maxSize);
     }
 
-    private static String validateFilename(Path root, String filename) {
+    static String validateFilename(Path root, String filename) {
         requireNonNull(root, "root is null");
         SimpleDateFormat sdf = new SimpleDateFormat(filename);
         String format = sdf.format(new Date());

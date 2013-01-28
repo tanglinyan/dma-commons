@@ -30,14 +30,14 @@ import dk.dma.enav.model.geometry.Position;
 import dk.dma.enav.model.geometry.PositionTime;
 
 /**
- * A subscription is created for each {@link PositionUpdateHandler}. It is to use unsubscribe ({@link #cancel()}).
+ * A subscription is created for each {@link PositionUpdatedHandler}. It is to use unsubscribe ({@link #cancel()}).
  * 
  * @author Kasper Nielsen
  */
 public class Subscription<T> {
 
     /** The handler that should be called whenever objects are entering/exiting. */
-    private final PositionUpdateHandler<? super T> handler;
+    private final PositionUpdatedHandler<? super T> handler;
 
     /** The shape we look at to see if we are entering the area of interest. */
     private final Area shapeEntering;
@@ -51,7 +51,7 @@ public class Subscription<T> {
     /** The tracker that this subscription is registered with. */
     private final PositionTracker<T> tracker;
 
-    Subscription(PositionTracker<T> tracker, PositionUpdateHandler<? super T> handler, Area shape, Area exitShape) {
+    Subscription(PositionTracker<T> tracker, PositionUpdatedHandler<? super T> handler, Area shape, Area exitShape) {
         this.tracker = requireNonNull(tracker);
         this.shapeEntering = requireNonNull(shape);
         this.shapeExiting = requireNonNull(exitShape);

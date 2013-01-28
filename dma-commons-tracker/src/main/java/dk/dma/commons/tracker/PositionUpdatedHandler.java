@@ -22,7 +22,7 @@ import dk.dma.enav.model.geometry.PositionTime;
  * 
  * @author Kasper Nielsen
  */
-public abstract class PositionUpdateHandler<T> {
+public abstract class PositionUpdatedHandler<T> {
 
     /**
      * Invoked whenever an object enters the area of interest.

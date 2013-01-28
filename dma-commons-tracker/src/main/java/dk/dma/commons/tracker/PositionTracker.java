@@ -34,17 +34,13 @@ import dk.dma.enav.model.geometry.PositionTime;
  * 
  * @author Kasper Nielsen
  */
-/**
- * 
- * @author Kasper Nielsen
- */
 public class PositionTracker<T> implements Runnable {
 
     /** All targets at last update. Must be read via synchronized */
     private Map<T, PositionTime> latest = new ConcurrentHashMapV8<>();
 
     /** All current subscriptions. */
-    final ConcurrentHashMapV8<PositionUpdateHandler<? super T>, Subscription<T>> subscriptions = new ConcurrentHashMapV8<>();
+    final ConcurrentHashMapV8<PositionUpdatedHandler<? super T>, Subscription<T>> subscriptions = new ConcurrentHashMapV8<>();
 
     /** All targets that we are currently monitoring. */
     private final ConcurrentHashMapV8<T, PositionTime> targets = new ConcurrentHashMapV8<>();
@@ -132,33 +128,45 @@ public class PositionTracker<T> implements Runnable {
         this.latest = current;
     }
 
-    public Subscription<T> subscribe(Area shape, PositionUpdateHandler<? super T> handler) {
-        return subscribe(shape, handler, 100);
+    /**
+     * Subscribes to changes in the specified area.
+     * 
+     * @param area
+     *            the area to monitor
+     * @param handler
+     *            a subscription that can be used to cancel the subscription
+     * @return
+     */
+    public Subscription<T> subscribe(Area area, PositionUpdatedHandler<? super T> handler) {
+        return subscribe(area, handler, 100);
     }
 
     /**
-     * @param shape
+     * Subscribes to changes in the specified area.
+     * 
+     * @param area
+     *            the area to monitor
      * @param handler
+     *            a subscription that can be used to cancel the subscription
      * @param slack
      *            is the precision with which we want to report entering/exiting messages. We use it to avoid situations
      *            where a boat sails on a boundary line and keeps changing from being inside to outside of it
      * @return
      */
-    public Subscription<T> subscribe(Area shape, PositionUpdateHandler<? super T> handler, double slack) {
+    public Subscription<T> subscribe(Area area, PositionUpdatedHandler<? super T> handler, double slack) {
+        Area exitShape = requireNonNull(area, "area is null");
         if (slack < 0) {
             throw new IllegalArgumentException("Slack must be non-negative, was " + slack);
         }
-        Area exitShape = requireNonNull(shape, "shape is null");
         if (slack > 0) {
-            if (shape instanceof Circle) {
-                Circle c = (Circle) shape;
+            if (area instanceof Circle) {
+                Circle c = (Circle) area;
                 exitShape = c.withRadius(c.getRadius() + slack);
             } else {
-                // somebody implement box
                 throw new UnsupportedOperationException("Only circles allowed for now");
             }
         }
-        Subscription<T> s = new Subscription<>(this, handler, shape, exitShape);
+        Subscription<T> s = new Subscription<>(this, handler, area, exitShape);
         if (subscriptions.putIfAbsent(handler, s) != null) {
             throw new IllegalArgumentException("The specified handler has already been registered");
         }
