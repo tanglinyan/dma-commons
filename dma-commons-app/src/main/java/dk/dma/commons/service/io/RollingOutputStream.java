@@ -26,10 +26,10 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import dk.dma.commons.util.function.EBlock;
 import dk.dma.commons.util.io.CountingOutputStream;
 import dk.dma.commons.util.io.IoUtil;
 import dk.dma.commons.util.io.OutputStreamSink;
+import dk.dma.enav.util.function.EBlock;
 
 /**
  * 

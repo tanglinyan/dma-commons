@@ -24,7 +24,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import dk.dma.commons.management.ManagedAttribute;
 import dk.dma.commons.management.ManagedOperation;
-import dk.dma.commons.util.function.Predicate;
+import dk.dma.enav.util.function.Predicate;
 
 /**
  * A non-blocking down sampling filter.

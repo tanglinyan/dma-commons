@@ -24,10 +24,10 @@ import jsr166e.ConcurrentHashMapV8.Action;
 import jsr166e.ConcurrentHashMapV8.BiAction;
 import jsr166e.ConcurrentHashMapV8.BiFun;
 import dk.dma.commons.management.ManagedAttribute;
-import dk.dma.commons.util.function.BiBlock;
 import dk.dma.enav.model.geometry.Area;
 import dk.dma.enav.model.geometry.Circle;
 import dk.dma.enav.model.geometry.PositionTime;
+import dk.dma.enav.util.function.BiConsumer;
 
 /**
  * An object that tracks positions.
@@ -53,7 +53,7 @@ public class PositionTracker<T> implements Runnable {
      * @param block
      *            the callback
      */
-    public void forEachWithinArea(final Area shape, final BiBlock<T, PositionTime> block) {
+    public void forEachWithinArea(final Area shape, final BiConsumer<T, PositionTime> block) {
         requireNonNull(shape, "shapeis null");
         requireNonNull(block, "block is null");
         targets.forEachInParallel(new BiAction<T, PositionTime>() {
@@ -93,7 +93,7 @@ public class PositionTracker<T> implements Runnable {
      */
     public Map<T, PositionTime> getTargetsWithin(final Area shape) {
         final ConcurrentHashMapV8<T, PositionTime> result = new ConcurrentHashMapV8<>();
-        forEachWithinArea(shape, new BiBlock<T, PositionTime>() {
+        forEachWithinArea(shape, new BiConsumer<T, PositionTime>() {
             public void accept(T a, PositionTime b) {
                 if (shape.containedWithin(b)) {
                     result.put(a, b);

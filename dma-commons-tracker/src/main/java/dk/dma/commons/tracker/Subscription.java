@@ -23,11 +23,11 @@ import java.util.Map;
 import jsr166e.ConcurrentHashMapV8;
 import jsr166e.ConcurrentHashMapV8.Action;
 import jsr166e.ConcurrentHashMapV8.BiAction;
-import dk.dma.commons.util.function.BiBlock;
-import dk.dma.commons.util.function.Block;
 import dk.dma.enav.model.geometry.Area;
 import dk.dma.enav.model.geometry.Position;
 import dk.dma.enav.model.geometry.PositionTime;
+import dk.dma.enav.util.function.BiConsumer;
+import dk.dma.enav.util.function.Consumer;
 
 /**
  * A subscription is created for each {@link PositionUpdatedHandler}. It is to use unsubscribe ({@link #cancel()}).
@@ -71,7 +71,7 @@ public class Subscription<T> {
      * @param block
      *            the block
      */
-    public void forEachTrackedObject(final Block<T> block) {
+    public void forEachTrackedObject(final Consumer<T> block) {
         requireNonNull(block, "block is null");
         trackedObjects.forEachKeyInParallel(new Action<T>() {
             @Override
@@ -87,7 +87,7 @@ public class Subscription<T> {
      * @param block
      *            the block
      */
-    public void forEachTrackedObject(final BiBlock<T, Position> block) {
+    public void forEachTrackedObject(final BiConsumer<T, Position> block) {
         requireNonNull(block, "block is null");
         trackedObjects.forEachInParallel(new BiAction<T, PositionTime>() {
             @Override

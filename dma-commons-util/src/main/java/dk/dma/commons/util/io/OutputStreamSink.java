@@ -22,7 +22,7 @@ import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
-import dk.dma.commons.util.function.Predicate;
+import dk.dma.enav.util.function.Predicate;
 
 /**
  * <p>

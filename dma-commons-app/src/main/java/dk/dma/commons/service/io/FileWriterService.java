@@ -30,8 +30,8 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Objects;
 
 import dk.dma.commons.service.AbstractBatchedStage;
-import dk.dma.commons.util.function.LongFunction;
 import dk.dma.commons.util.io.OutputStreamSink;
+import dk.dma.enav.util.function.LongFunction;
 
 /**
  * 

@@ -30,9 +30,14 @@
   <description>The DMA Commons Util</description>
 
   <dependencies>
-      <dependency>
+    <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>dma-commons-management</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>dk.dma.enav</groupId>
+      <artifactId>enav-util</artifactId>
       <version>${project.version}</version>
     </dependency>
     
