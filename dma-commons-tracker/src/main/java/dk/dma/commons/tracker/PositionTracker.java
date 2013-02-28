@@ -84,6 +84,10 @@ public class PositionTracker<T> implements Runnable {
         return targets.size();
     }
 
+    public boolean remove(T t) {
+        return latest.remove(t) != null;
+    }
+
     /**
      * Returns a map of all tracked objects and their latest position.
      * 

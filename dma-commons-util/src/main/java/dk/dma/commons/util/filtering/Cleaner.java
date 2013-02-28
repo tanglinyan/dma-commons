@@ -18,7 +18,6 @@ package dk.dma.commons.util.filtering;
 import static java.util.Objects.requireNonNull;
 
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.concurrent.Executors;
@@ -33,7 +32,7 @@ import java.util.concurrent.TimeUnit;
  */
 class Cleaner extends Thread {
 
-    private static final Set<Runnable> SET = Collections.newSetFromMap(new WeakHashMap<Runnable, Boolean>());
+    static final Set<Runnable> SET = Collections.newSetFromMap(new WeakHashMap<Runnable, Boolean>());
 
     private static ScheduledExecutorService ses;
 
@@ -54,7 +53,7 @@ class Cleaner extends Thread {
             ses.schedule(new Runnable() {
                 @Override
                 public void run() {
-                    for (Runnable r : needsCleaning()) {
+                    for (Runnable r : SET) {
                         if (r != null) {
                             r.run();
                         }
@@ -62,9 +61,5 @@ class Cleaner extends Thread {
                 }
             }, 1, TimeUnit.SECONDS);
         }
-    }
-
-    static synchronized Set<Runnable> needsCleaning() {
-        return new HashSet<>(SET);
     }
 }

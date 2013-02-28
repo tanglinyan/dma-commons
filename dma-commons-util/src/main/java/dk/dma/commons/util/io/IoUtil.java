@@ -15,9 +15,17 @@
  */
 package dk.dma.commons.util.io;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FilterOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.nio.file.Path;
 import java.text.SimpleDateFormat;
@@ -29,6 +37,29 @@ import java.util.concurrent.TimeUnit;
  * @author Kasper Nielsen
  */
 public class IoUtil {
+
+    public static Object readObject(DataInputStream dis) throws IOException, ClassNotFoundException {
+        int size = dis.readInt();
+        byte[] input = new byte[size];
+        dis.readFully(input);
+        return readObject(input);
+    }
+
+    public static Object readObject(byte[] input) throws IOException, ClassNotFoundException {
+        ByteArrayInputStream bin = new ByteArrayInputStream(input);
+        ObjectInputStream in = new ObjectInputStream(new BufferedInputStream(bin));
+        return in.readObject();
+    }
+
+    public static void writeObject(DataOutputStream dos, Object o) throws IOException {
+        ByteArrayOutputStream bout = new ByteArrayOutputStream(20000);
+        try (ObjectOutputStream out = new ObjectOutputStream(new BufferedOutputStream(bout));) {
+            out.writeObject(o);
+        }
+        dos.writeInt(bout.size());
+        dos.write(bout.toByteArray());
+        dos.flush();
+    }
 
     public static Path addTimestamp(Path base, TimeUnit unit) {
         long now = System.currentTimeMillis();
