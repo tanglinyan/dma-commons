@@ -162,8 +162,10 @@ public abstract class OutputStreamSink<T> {
         };
     }
 
+    @SuppressWarnings("unused")
     public void header(OutputStream stream) throws IOException {}
 
+    @SuppressWarnings("unused")
     public void footer(OutputStream stream) throws IOException {}
 
     public abstract void process(OutputStream stream, T message) throws IOException;
