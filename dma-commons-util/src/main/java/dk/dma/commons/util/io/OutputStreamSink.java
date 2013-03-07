@@ -22,6 +22,7 @@ import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
+import dk.dma.enav.util.function.Consumer;
 import dk.dma.enav.util.function.Predicate;
 
 /**
@@ -98,6 +99,16 @@ public abstract class OutputStreamSink<T> {
         };
     }
 
+    public final Consumer<T> asConsumer(final OutputStream os) {
+        requireNonNull(os);
+        return new Consumer<T>() {
+            public void accept(T t) {
+                throw new UnsupportedOperationException();
+                // process(os, t);
+            }
+        };
+    }
+
     public final OutputStreamSink<T> writeHeaderAscii(String header) {
         return writeHeader(header, StandardCharsets.US_ASCII);
     }
@@ -151,10 +162,8 @@ public abstract class OutputStreamSink<T> {
         };
     }
 
-    @SuppressWarnings("unused")
     public void header(OutputStream stream) throws IOException {}
 
-    @SuppressWarnings("unused")
     public void footer(OutputStream stream) throws IOException {}
 
     public abstract void process(OutputStream stream, T message) throws IOException;
