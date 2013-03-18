@@ -59,7 +59,9 @@ public class PositionTracker<T> implements Runnable {
         targets.forEachInParallel(new BiAction<T, PositionTime>() {
             @Override
             public void apply(T a, PositionTime b) {
-                block.accept(a, b);
+                if (shape.containedWithin(b)) {
+                    block.accept(a, b);
+                }
             }
         });
     }
