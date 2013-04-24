@@ -75,7 +75,7 @@ public class DownSamplingFilter<T> extends Predicate<T> {
 
     @ManagedAttribute
     public long getAcceptanceCount() {
-        return rejected.get();
+        return accepted.get();
     }
 
     @ManagedAttribute
@@ -84,8 +84,8 @@ public class DownSamplingFilter<T> extends Predicate<T> {
     }
 
     @ManagedAttribute
-    public long getCount() {
-        return rejected.get();
+    public long getTotalCount() {
+        return getAcceptanceCount() + getRejectionCount();
     }
 
     @ManagedAttribute
