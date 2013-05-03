@@ -15,6 +15,8 @@
  */
 package dk.dma.commons.util;
 
+import java.util.Locale;
+
 /**
  * 
  * @author Kasper Nielsen
@@ -30,4 +32,37 @@ public class FormatUtil {
         String pre = (si ? "kMGTPE" : "KMGTPE").charAt(exp - 1) + (si ? "" : "i");
         return String.format("%.1f %sB", bytes / Math.pow(unit, exp), pre);
     }
+
+    public static String latToPrintable(double lat) {
+        String ns = "N";
+        if (lat < 0) {
+            ns = "S";
+            lat *= -1;
+        }
+        int hours = (int) lat;
+        lat -= hours;
+        lat *= 60;
+        String latStr = String.format(Locale.US, "%3.3f", lat);
+        while (latStr.indexOf('.') < 2) {
+            latStr = "0" + latStr;
+        }
+        return String.format(Locale.US, "%02d %s%s", hours, latStr, ns);
+    }
+
+    public static String lonToPrintable(double lon) {
+        String ns = "E";
+        if (lon < 0) {
+            ns = "W";
+            lon *= -1;
+        }
+        int hours = (int) lon;
+        lon -= hours;
+        lon *= 60;
+        String lonStr = String.format(Locale.US, "%3.3f", lon);
+        while (lonStr.indexOf('.') < 2) {
+            lonStr = "0" + lonStr;
+        }
+        return String.format(Locale.US, "%03d %s%s", hours, lonStr, ns);
+    }
+
 }
