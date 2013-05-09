@@ -37,9 +37,10 @@ import dk.dma.enav.util.function.EBlock;
  */
 class RollingOutputStream extends OutputStream {
 
-    /** The current outputstream we are writing to. */
+    /** The current output stream we are writing to. */
     private OutputStream current;
 
+    /** The final name of the current path. */
     private volatile Path finalPath;
 
     private volatile Path nextPath;

@@ -15,6 +15,9 @@
  */
 package dk.dma.commons.app;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.common.util.concurrent.Service;
 import com.google.inject.Injector;
 
@@ -24,7 +27,40 @@ import com.google.inject.Injector;
  */
 public abstract class AbstractDaemon extends AbstractCommandLineTool {
 
+    static final Logger LOG = LoggerFactory.getLogger(AbstractDaemon.class);
+
     // Like a command tools, but keeps going and has a shutdown hook
+
+    /** Creates a new AbstractDaemon */
+    public AbstractDaemon() {
+        installShutdownHook();
+    }
+
+    /**
+     * @param applicationName
+     *            the name of the application
+     */
+    public AbstractDaemon(String applicationName) {
+        super(applicationName);
+        installShutdownHook();
+    }
+
+    private void installShutdownHook() {
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            public void run() {
+                LOG.info("Shutdown request received");
+                preShutdown();
+                shutdown();
+                postShutdown();
+                LOG.info("Shutdown finished");
+            }
+        });
+    }
+
+    // Install shutdown hooks
+    protected void preShutdown() {}
+
+    protected void postShutdown() {}
 
     /** {@inheritDoc} */
     @Override
@@ -36,25 +72,5 @@ public abstract class AbstractDaemon extends AbstractCommandLineTool {
         // Await on Ctrl-C, or all service exited
     }
 
-    protected abstract void runDaemon(Injector injector) throws Exception;
-
-    /** Creates a new AbstractDaemon */
-    public AbstractDaemon() {
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-            public void run() {
-                shutdown();
-            }
-        });
-    }
-
-    /**
-     * @param applicationName
-     *            the name of the application
-     */
-    public AbstractDaemon(String applicationName) {
-        super(applicationName);
-    }
-
-    // Install shutdown hooks
-    protected void externalShutdown() {};
+    protected abstract void runDaemon(Injector injector) throws Exception;;
 }

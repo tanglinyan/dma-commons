@@ -52,12 +52,11 @@ public abstract class AbstractMessageProcessorService<T> extends AbstractExecuti
         return numberProcessed.get();
     }
 
-    protected abstract void handleMessages(List<T> messages) throws Exception;
-
-    // All messages have been processed
-    protected void onTermination() {
-
+    public int getSize() {
+        return queue.size();
     }
+
+    protected abstract void handleMessages(List<T> messages) throws Exception;
 
     T pollInterruptable(ShutdownBlockingQueue<T> queue, long timeout, TimeUnit unit) {
         try {
@@ -88,19 +87,20 @@ public abstract class AbstractMessageProcessorService<T> extends AbstractExecuti
         }
     }
 
-    T takeInterruptable(ShutdownBlockingQueue<T> queue) {
-        try {
-            isInInterruptableBlock = true;
-            T t = queue.take();
-            synchronized (this) {
-                isInInterruptableBlock = false;
-                return t;
-            }
-        } catch (InterruptedException e) {
-            Thread.interrupted();
-            return null;
-        }
-    }
+    //
+    // T takeInterruptable(ShutdownBlockingQueue<T> queue) {
+    // try {
+    // isInInterruptableBlock = true;
+    // T t = queue.take();
+    // synchronized (this) {
+    // isInInterruptableBlock = false;
+    // return t;
+    // }
+    // } catch (InterruptedException e) {
+    // Thread.interrupted();
+    // return null;
+    // }
+    // }
 
     /** {@inheritDoc} */
     @Override

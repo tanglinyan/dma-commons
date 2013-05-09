@@ -46,7 +46,7 @@ public abstract class AbstractBatchedStage<T> extends AbstractMessageProcessorSe
             if (t != null) {// okay we might have more more than one element
                 ArrayList<T> list = new ArrayList<>(maxBatchSize);
                 list.add(t);
-                queue.drainTo((Collection<? super Object>) list.subList(1, list.size()), maxBatchSize - 1);
+                queue.drainToBlocking((Collection<? super Object>) list.subList(1, list.size()), maxBatchSize - 1);
                 handleMessages(list);
                 numberProcessed.addAndGet(list.size());
             }

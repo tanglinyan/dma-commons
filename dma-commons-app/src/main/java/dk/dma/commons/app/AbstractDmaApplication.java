@@ -28,6 +28,9 @@ import javax.management.DynamicMBean;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.Service;
 import com.google.common.util.concurrent.Service.State;
@@ -53,6 +56,8 @@ public abstract class AbstractDmaApplication {
     private final List<Module> modules = new ArrayList<>();
 
     final CopyOnWriteArrayList<Service> services = new CopyOnWriteArrayList<>();
+
+    static final Logger LOG = LoggerFactory.getLogger(AbstractDmaApplication.class);
 
     AbstractDmaApplication() {
         applicationName = getClass().getSimpleName();
@@ -116,9 +121,15 @@ public abstract class AbstractDmaApplication {
     }
 
     protected void shutdown() {
-        for (Service s : services) {
+        LOG.info("Shutting down all services");
+        // shutdown services in reverse order
+        List<Service> list = new ArrayList<>(services);
+        Collections.reverse(list);
+        for (Service s : list) {
+            LOG.info("Shutting down " + s.getClass().getName());
             s.stopAndWait();
         }
+        LOG.info("All services was succesfully shutdown");
     }
 
     void awaitServiceStopped(Service s) throws InterruptedException {

@@ -23,11 +23,14 @@ import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Objects;
+import com.google.common.util.concurrent.AbstractScheduledService;
 
 import dk.dma.commons.service.AbstractBatchedStage;
 import dk.dma.commons.util.io.OutputStreamSink;
@@ -53,11 +56,42 @@ public class FileWriterService<T> extends AbstractBatchedStage<T> {
 
     private Path currentPath;
 
-    private final RollingOutputStream ros;
+    final RollingOutputStream ros = new RollingOutputStream();
 
     private long lastTime = -1;
 
     private final SimpleDateFormat sdf;
+
+    final ReentrantLock lock = new ReentrantLock();
+
+    class FlushThread extends AbstractScheduledService {
+
+        protected void runOneIteration() throws Exception {
+            lock.lock();
+            try {
+                ros.flush();
+                // Hmm vi ved ikke hvornaar vi kan lukke den
+                // long time = toTime.applyAsLong(t);
+                // if (time > lastTime) {
+                // if (currentPath != null) {
+                // Path p = root.resolve(sdf.format(new Date(time)));
+                // if (!Objects.equal(p, currentPath)) {
+                // ros.roll(p);
+                // currentPath = p;
+                // }
+                // }
+                // }
+                // We check the time once every second
+
+            } finally {
+                lock.unlock();
+            }
+        }
+
+        protected Scheduler scheduler() {
+            return Scheduler.newFixedRateSchedule(1, 1, TimeUnit.SECONDS);
+        }
+    }
 
     /**
      * @param queueSize
@@ -71,7 +105,6 @@ public class FileWriterService<T> extends AbstractBatchedStage<T> {
         this.toTime = toTime;
         this.maxSize = maxSize;
         sdf = toTime == null ? null : new SimpleDateFormat(filename);
-        ros = new RollingOutputStream();
     }
 
     /**
@@ -79,26 +112,33 @@ public class FileWriterService<T> extends AbstractBatchedStage<T> {
      */
     @Override
     protected void handleMessages(List<T> messages) throws IOException {
-        for (T t : messages) {
-            if (toTime == null) {
-                throw new UnsupportedOperationException();
-            } else {
-                long time = toTime.applyAsLong(t);
-                if (time < lastTime) {
-                    throw new IllegalStateException("Cannot go backwards, last time =" + lastTime + ", currenttime="
-                            + time);
-                }
-                if (currentPath == null || time / 1000 == lastTime / 1000) {
-                    Path p = root.resolve(sdf.format(new Date(time)));
-                    if (!Objects.equal(p, currentPath)) {
-                        ros.roll(p);
-                        currentPath = p;
-                        LOG.info("Opening file " + p + " for backup");
+        lock.lock();
+        try {
+            for (T t : messages) {
+                if (toTime == null) {
+                    throw new UnsupportedOperationException();
+                } else {
+                    long time = toTime.applyAsLong(t);
+                    if (time < lastTime) {
+                        System.err.println("Cannot go backwards, last time =" + lastTime + ", currenttime=" + time
+                                + " writing anyways");
+                        time = lastTime;
                     }
+                    // We check the time once every second
+                    if (currentPath == null || time / 1000 == lastTime / 1000) {
+                        Path p = root.resolve(sdf.format(new Date(time)));
+                        if (!Objects.equal(p, currentPath)) {
+                            ros.roll(p);
+                            currentPath = p;
+                            LOG.info("Opening file " + p + " for backup");
+                        }
+                    }
+                    sink.process(ros.getPublicStream(), t);
+                    lastTime = time;
                 }
-                sink.process(ros.getPublicStream(), t);
-                lastTime = time;
             }
+        } finally {
+            lock.unlock();
         }
     }
 

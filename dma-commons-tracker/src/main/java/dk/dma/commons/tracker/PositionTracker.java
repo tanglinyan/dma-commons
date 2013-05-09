@@ -196,4 +196,17 @@ public class PositionTracker<T> implements Runnable {
             }
         });
     }
+
+    /**
+     * Returns the latest position time updated for the specified target. Or <code>null</code> if no position has ever
+     * been recorded for the target.
+     * 
+     * 
+     * @param target
+     *            the target
+     * @return the latest position time updated
+     */
+    public PositionTime getLatest(T target) {
+        return latest.get(target);
+    }
 }
