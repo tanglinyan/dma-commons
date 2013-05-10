@@ -64,35 +64,6 @@ public class FileWriterService<T> extends AbstractBatchedStage<T> {
 
     final ReentrantLock lock = new ReentrantLock();
 
-    class FlushThread extends AbstractScheduledService {
-
-        protected void runOneIteration() throws Exception {
-            lock.lock();
-            try {
-                ros.flush();
-                // Hmm vi ved ikke hvornaar vi kan lukke den
-                // long time = toTime.applyAsLong(t);
-                // if (time > lastTime) {
-                // if (currentPath != null) {
-                // Path p = root.resolve(sdf.format(new Date(time)));
-                // if (!Objects.equal(p, currentPath)) {
-                // ros.roll(p);
-                // currentPath = p;
-                // }
-                // }
-                // }
-                // We check the time once every second
-
-            } finally {
-                lock.unlock();
-            }
-        }
-
-        protected Scheduler scheduler() {
-            return Scheduler.newFixedRateSchedule(1, 1, TimeUnit.SECONDS);
-        }
-    }
-
     /**
      * @param queueSize
      * @param maxBatchSize
@@ -176,4 +147,34 @@ public class FileWriterService<T> extends AbstractBatchedStage<T> {
                 .println(validateFilename(Paths.get("/Users/kasperni/test"), "'a\nismessages'-YYYYd/d-H-m.'txt.zip'"));
         System.out.println("bye");
     }
+
+    class FlushThread extends AbstractScheduledService {
+
+        protected void runOneIteration() throws Exception {
+            lock.lock();
+            try {
+                ros.flush();
+                // Hmm vi ved ikke hvornaar vi kan lukke den
+                // long time = toTime.applyAsLong(t);
+                // if (time > lastTime) {
+                // if (currentPath != null) {
+                // Path p = root.resolve(sdf.format(new Date(time)));
+                // if (!Objects.equal(p, currentPath)) {
+                // ros.roll(p);
+                // currentPath = p;
+                // }
+                // }
+                // }
+                // We check the time once every second
+
+            } finally {
+                lock.unlock();
+            }
+        }
+
+        protected Scheduler scheduler() {
+            return Scheduler.newFixedRateSchedule(1, 1, TimeUnit.SECONDS);
+        }
+    }
+
 }

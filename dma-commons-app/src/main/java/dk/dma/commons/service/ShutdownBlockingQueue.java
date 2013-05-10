@@ -83,23 +83,6 @@ public class ShutdownBlockingQueue<E> extends AbstractQueue<E> implements Blocki
      * advance to head.next.
      */
 
-    /**
-     * Linked list node class
-     */
-    static class Node<E> {
-        E item;
-
-        /**
-         * One of: - the real successor Node - this Node, meaning the successor is head.next - null, meaning there is no
-         * successor (this is the last node)
-         */
-        Node<E> next;
-
-        Node(E x) {
-            item = x;
-        }
-    }
-
     private final CountDownLatch fullyShutdown = new CountDownLatch(2);
 
     /** The capacity bound, or Integer.MAX_VALUE if none */
@@ -902,6 +885,52 @@ public class ShutdownBlockingQueue<E> extends AbstractQueue<E> implements Blocki
         return new Itr();
     }
 
+    /**
+     * Saves this queue to a stream (that is, serializes it).
+     * 
+     * @serialData The capacity is emitted (int), followed by all of its elements (each an {@code Object}) in the proper
+     *             order, followed by a null
+     */
+    private void writeObject(java.io.ObjectOutputStream s) throws java.io.IOException {
+
+        fullyLock();
+        try {
+            // Write out any hidden stuff, plus capacity
+            s.defaultWriteObject();
+
+            // Write out all elements in the proper order.
+            for (Node<E> p = head.next; p != null; p = p.next) {
+                s.writeObject(p.item);
+            }
+
+            // Use trailing null as sentinel
+            s.writeObject(null);
+        } finally {
+            fullyUnlock();
+        }
+    }
+
+    /**
+     * Reconstitutes this queue from a stream (that is, deserializes it).
+     */
+    private void readObject(java.io.ObjectInputStream s) throws java.io.IOException, ClassNotFoundException {
+        // Read in capacity, and any hidden stuff
+        s.defaultReadObject();
+
+        count.set(0);
+        last = head = new Node<E>(null);
+
+        // Read in all elements and place in queue
+        for (;;) {
+            @SuppressWarnings("unchecked")
+            E item = (E) s.readObject();
+            if (item == null) {
+                break;
+            }
+            add(item);
+        }
+    }
+
     private class Itr implements Iterator<E> {
         /*
          * Basic weakly-consistent iterator. At all times hold the next item to hand out so that if hasNext() reports
@@ -984,48 +1013,19 @@ public class ShutdownBlockingQueue<E> extends AbstractQueue<E> implements Blocki
     }
 
     /**
-     * Saves this queue to a stream (that is, serializes it).
-     * 
-     * @serialData The capacity is emitted (int), followed by all of its elements (each an {@code Object}) in the proper
-     *             order, followed by a null
+     * Linked list node class
      */
-    private void writeObject(java.io.ObjectOutputStream s) throws java.io.IOException {
+    static class Node<E> {
+        E item;
 
-        fullyLock();
-        try {
-            // Write out any hidden stuff, plus capacity
-            s.defaultWriteObject();
+        /**
+         * One of: - the real successor Node - this Node, meaning the successor is head.next - null, meaning there is no
+         * successor (this is the last node)
+         */
+        Node<E> next;
 
-            // Write out all elements in the proper order.
-            for (Node<E> p = head.next; p != null; p = p.next) {
-                s.writeObject(p.item);
-            }
-
-            // Use trailing null as sentinel
-            s.writeObject(null);
-        } finally {
-            fullyUnlock();
-        }
-    }
-
-    /**
-     * Reconstitutes this queue from a stream (that is, deserializes it).
-     */
-    private void readObject(java.io.ObjectInputStream s) throws java.io.IOException, ClassNotFoundException {
-        // Read in capacity, and any hidden stuff
-        s.defaultReadObject();
-
-        count.set(0);
-        last = head = new Node<E>(null);
-
-        // Read in all elements and place in queue
-        for (;;) {
-            @SuppressWarnings("unchecked")
-            E item = (E) s.readObject();
-            if (item == null) {
-                break;
-            }
-            add(item);
+        Node(E x) {
+            item = x;
         }
     }
 }
