@@ -51,5 +51,9 @@ public abstract class AbstractBatchedStage<T> extends AbstractMessageProcessorSe
                 numberProcessed.addAndGet(list.size());
             }
         }
+        onShutdown();
     }
+
+    protected void onShutdown() {}
+
 }

@@ -44,25 +44,25 @@ public class FileWriterService<T> extends AbstractBatchedStage<T> {
 
     private static final Logger LOG = LoggerFactory.getLogger(FileWriterService.class);
 
+    private Path currentPath;
+
     final String filename;
+
+    private long lastTime = -1;
+
+    final ReentrantLock lock = new ReentrantLock();
 
     final long maxSize;
 
     private final Path root;
 
-    private final OutputStreamSink<T> sink;
-
-    private final LongFunction<T> toTime;
-
-    private Path currentPath;
-
     final RollingOutputStream ros = new RollingOutputStream();
-
-    private long lastTime = -1;
 
     private final SimpleDateFormat sdf;
 
-    final ReentrantLock lock = new ReentrantLock();
+    private final OutputStreamSink<T> sink;
+
+    private final LongFunction<T> toTime;
 
     /**
      * @param queueSize
@@ -113,6 +113,25 @@ public class FileWriterService<T> extends AbstractBatchedStage<T> {
         }
     }
 
+    /** {@inheritDoc} */
+    @Override
+    protected void onShutdown() {
+        lock.lock();
+        try {
+            ros.close();
+        } catch (IOException e) {
+            LOG.error("Could not close stream " + currentPath + " for backup", e);
+        } finally {
+            lock.unlock();
+        }
+
+    }
+
+    public static <T> FileWriterService<T> chunkedService(Path root, String filename, OutputStreamSink<T> sink,
+            long maxSize) {
+        return new FileWriterService<>(root, filename, sink, null, maxSize);
+    }
+
     public static <T> FileWriterService<T> dateService(Path root, String filename, OutputStreamSink<T> sink) {
         return new FileWriterService<>(root, validateFilename(root, filename), sink, new LongFunction<T>() {
 
@@ -129,9 +148,10 @@ public class FileWriterService<T> extends AbstractBatchedStage<T> {
                 Long.MAX_VALUE);
     }
 
-    public static <T> FileWriterService<T> chunkedService(Path root, String filename, OutputStreamSink<T> sink,
-            long maxSize) {
-        return new FileWriterService<>(root, filename, sink, null, maxSize);
+    public static void main(String[] args) {
+        System.out
+                .println(validateFilename(Paths.get("/Users/kasperni/test"), "'a\nismessages'-YYYYd/d-H-m.'txt.zip'"));
+        System.out.println("bye");
     }
 
     static String validateFilename(Path root, String filename) {
@@ -140,12 +160,6 @@ public class FileWriterService<T> extends AbstractBatchedStage<T> {
         String format = sdf.format(new Date());
         root.resolve(format);// validates path
         return filename;
-    }
-
-    public static void main(String[] args) {
-        System.out
-                .println(validateFilename(Paths.get("/Users/kasperni/test"), "'a\nismessages'-YYYYd/d-H-m.'txt.zip'"));
-        System.out.println("bye");
     }
 
     class FlushThread extends AbstractScheduledService {

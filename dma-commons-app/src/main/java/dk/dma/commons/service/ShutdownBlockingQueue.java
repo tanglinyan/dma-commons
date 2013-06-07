@@ -213,7 +213,7 @@ public class ShutdownBlockingQueue<E> extends AbstractQueue<E> implements Blocki
             throw new IllegalArgumentException();
         }
         this.capacity = capacity;
-        last = head = new Node<E>(null);
+        last = head = new Node<>(null);
     }
 
     /**
@@ -238,7 +238,7 @@ public class ShutdownBlockingQueue<E> extends AbstractQueue<E> implements Blocki
                 if (n == capacity) {
                     throw new IllegalStateException("Queue full");
                 }
-                enqueue(new Node<E>(e));
+                enqueue(new Node<>(e));
                 ++n;
             }
             count.set(n);
@@ -289,7 +289,7 @@ public class ShutdownBlockingQueue<E> extends AbstractQueue<E> implements Blocki
         // Note: convention in all put/take/etc is to preset local var
         // holding count negative to indicate failure unless set.
         int c = -1;
-        Node<E> node = new Node<E>(e);
+        Node<E> node = new Node<>(e);
         final ReentrantLock putLock = this.putLock;
         final AtomicInteger count = this.count;
         putLock.lockInterruptibly();
@@ -385,7 +385,7 @@ public class ShutdownBlockingQueue<E> extends AbstractQueue<E> implements Blocki
                 }
                 nanos = notFull.awaitNanos(nanos);
             }
-            enqueue(new Node<E>(e));
+            enqueue(new Node<>(e));
             c = count.getAndIncrement();
             if (c + 1 < capacity) {
                 notFull.signal();
@@ -417,7 +417,7 @@ public class ShutdownBlockingQueue<E> extends AbstractQueue<E> implements Blocki
             return false;
         }
         int c = -1;
-        Node<E> node = new Node<E>(e);
+        Node<E> node = new Node<>(e);
         final ReentrantLock putLock = this.putLock;
         putLock.lock();
         try {
@@ -918,7 +918,7 @@ public class ShutdownBlockingQueue<E> extends AbstractQueue<E> implements Blocki
         s.defaultReadObject();
 
         count.set(0);
-        last = head = new Node<E>(null);
+        last = head = new Node<>(null);
 
         // Read in all elements and place in queue
         for (;;) {
