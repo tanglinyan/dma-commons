@@ -32,9 +32,7 @@ public abstract class AbstractDaemon extends AbstractCommandLineTool {
     // Like a command tools, but keeps going and has a shutdown hook
 
     /** Creates a new AbstractDaemon */
-    public AbstractDaemon() {
-        installShutdownHook();
-    }
+    public AbstractDaemon() {}
 
     /**
      * @param applicationName
@@ -42,7 +40,7 @@ public abstract class AbstractDaemon extends AbstractCommandLineTool {
      */
     public AbstractDaemon(String applicationName) {
         super(applicationName);
-        installShutdownHook();
+
     }
 
     private void installShutdownHook() {
@@ -57,14 +55,15 @@ public abstract class AbstractDaemon extends AbstractCommandLineTool {
         });
     }
 
+    protected void postShutdown() {}
+
     // Install shutdown hooks
     protected void preShutdown() {}
-
-    protected void postShutdown() {}
 
     /** {@inheritDoc} */
     @Override
     protected final void run(Injector injector) throws Exception {
+        installShutdownHook();
         runDaemon(injector);
         for (Service s : services) {
             awaitServiceStopped(s);
