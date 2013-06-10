@@ -29,6 +29,7 @@ import java.util.zip.ZipOutputStream;
 import dk.dma.commons.util.io.CountingOutputStream;
 import dk.dma.commons.util.io.IoUtil;
 import dk.dma.commons.util.io.OutputStreamSink;
+import dk.dma.commons.util.io.PathUtil;
 import dk.dma.enav.util.function.EBlock;
 
 /**
@@ -60,6 +61,7 @@ class RollingOutputStream extends OutputStream {
         if (current != null) {
             current.close();
             if (!finalPath.equals(nextPath)) {
+                finalPath = PathUtil.findUnique(finalPath);
                 Files.move(nextPath, finalPath);
             }
             current = null;
@@ -114,7 +116,10 @@ class RollingOutputStream extends OutputStream {
             finalPath = p;
             nextPath = p.resolveSibling(p.getFileName().toString() + ".tmp");
             // big buffer size is important as we do not want to write to disc to often
+            nextPath = PathUtil.findUnique(nextPath);
+
             Files.createDirectories(nextPath.getParent());
+
             current = new BufferedOutputStream(new CountingOutputStream(new CountingOutputStream(
                     Files.newOutputStream(nextPath), written), totalWritten), 1024 * 1024);
             if (zip) {

@@ -69,7 +69,7 @@ public class FileWriterService<T> extends AbstractBatchedStage<T> {
      * @param maxBatchSize
      */
     FileWriterService(Path root, String filename, OutputStreamSink<T> sink, LongFunction<T> toTime, long maxSize) {
-        super(100000, 100);
+        super(10000, 100);
         this.root = requireNonNull(root);
         this.filename = requireNonNull(filename);
         this.sink = requireNonNull(sink);
