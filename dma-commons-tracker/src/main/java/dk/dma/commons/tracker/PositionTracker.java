@@ -155,8 +155,8 @@ public class PositionTracker<T> implements Runnable {
      * @param handler
      *            a subscription that can be used to cancel the subscription
      * @param slack
-     *            is the precision with which we want to report entering/exiting messages. We use it to avoid situations
-     *            where a boat sails on a boundary line and keeps changing from being inside to outside of it
+     *            is the precision in meters with which we want to report entering/exiting messages. We use it to avoid
+     *            situations where a boat sails on a boundary line and keeps changing from being inside to outside of it
      * @return
      */
     public Subscription<T> subscribe(Area area, PositionUpdatedHandler<? super T> handler, double slack) {
