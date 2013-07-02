@@ -168,7 +168,7 @@ public abstract class AbstractDmaApplication {
         }
     }
 
-    private void tryManage(Object o) throws Exception {
+    protected void tryManage(Object o) throws Exception {
         DynamicMBean mbean = Managements.tryCreate(this);
         if (mbean != null) {
             MBeanServer mb = ManagementFactory.getPlatformMBeanServer();
