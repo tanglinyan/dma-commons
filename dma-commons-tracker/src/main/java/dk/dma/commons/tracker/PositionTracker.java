@@ -18,6 +18,9 @@ package dk.dma.commons.tracker;
 import static java.util.Objects.requireNonNull;
 
 import java.util.Map;
+import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import jsr166e.ConcurrentHashMapV8;
 import jsr166e.ConcurrentHashMapV8.Action;
@@ -34,10 +37,10 @@ import dk.dma.enav.util.function.BiConsumer;
  * 
  * @author Kasper Nielsen
  */
-public class PositionTracker<T> implements Runnable {
+public class PositionTracker<T> {
 
     /** All targets at last update. Must be read via synchronized */
-    private Map<T, PositionTime> latest = new ConcurrentHashMapV8<>();
+    private ConcurrentHashMapV8<T, PositionTime> latest = new ConcurrentHashMapV8<>();
 
     /** All current subscriptions. */
     final ConcurrentHashMapV8<PositionUpdatedHandler<? super T>, Subscription<T>> subscriptions = new ConcurrentHashMapV8<>();
@@ -59,11 +62,24 @@ public class PositionTracker<T> implements Runnable {
         targets.forEachInParallel(new BiAction<T, PositionTime>() {
             @Override
             public void apply(T a, PositionTime b) {
-                if (shape.containedWithin(b)) {
+                if (shape.contains(b)) {
                     block.accept(a, b);
                 }
             }
         });
+    }
+
+    /**
+     * Returns the latest position time updated for the specified target. Or <code>null</code> if no position has ever
+     * been recorded for the target.
+     * 
+     * 
+     * @param target
+     *            the target
+     * @return the latest position time updated
+     */
+    public PositionTime getLatest(T target) {
+        return latest.get(target);
     }
 
     /**
@@ -86,10 +102,6 @@ public class PositionTracker<T> implements Runnable {
         return targets.size();
     }
 
-    public boolean remove(T t) {
-        return latest.remove(t) != null;
-    }
-
     /**
      * Returns a map of all tracked objects and their latest position.
      * 
@@ -101,7 +113,7 @@ public class PositionTracker<T> implements Runnable {
         final ConcurrentHashMapV8<T, PositionTime> result = new ConcurrentHashMapV8<>();
         forEachWithinArea(shape, new BiConsumer<T, PositionTime>() {
             public void accept(T a, PositionTime b) {
-                if (shape.containedWithin(b)) {
+                if (shape.contains(b)) {
                     result.put(a, b);
                 }
             }
@@ -109,8 +121,20 @@ public class PositionTracker<T> implements Runnable {
         return result;
     }
 
+    public boolean remove(T t) {
+        return latest.remove(t) != null;
+    }
+
+    public Future<?> schedule(ScheduledExecutorService ses, int updatePeriodMS) {
+        return ses.scheduleAtFixedRate(new Runnable() {
+            public void run() {
+                doRun();
+            }
+        }, 0, updatePeriodMS, TimeUnit.MILLISECONDS);
+    }
+
     /** Should be scheduled to run every x second to update handlers. */
-    public synchronized void run() {
+    synchronized void doRun() {
         ConcurrentHashMapV8<T, PositionTime> current = new ConcurrentHashMapV8<>(targets);
         final Map<T, PositionTime> latest = this.latest;
 
@@ -195,18 +219,5 @@ public class PositionTracker<T> implements Runnable {
                 return a.getTime() >= b.getTime() ? a : b;
             }
         });
-    }
-
-    /**
-     * Returns the latest position time updated for the specified target. Or <code>null</code> if no position has ever
-     * been recorded for the target.
-     * 
-     * 
-     * @param target
-     *            the target
-     * @return the latest position time updated
-     */
-    public PositionTime getLatest(T target) {
-        return latest.get(target);
     }
 }

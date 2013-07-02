@@ -66,36 +66,36 @@ public class Subscription<T> {
     }
 
     /**
-     * Performs the given block for each tracked object in parallel.
+     * Performs the given consumer for each tracked object in parallel.
      * 
-     * @param block
-     *            the block
+     * @param consumer
+     *            the consumer
      */
-    public void forEachTrackedObject(final Consumer<T> block) {
-        requireNonNull(block, "block is null");
+    public void forEachTrackedObject(final Consumer<T> consumer) {
+        requireNonNull(consumer, "consumer is null");
         trackedObjects.forEachKeyInParallel(new Action<T>() {
             @Override
             public void apply(T t) {
-                block.accept(t);
+                consumer.accept(t);
             }
         });
     }
 
     /**
-     * Performs the given block for each tracked object in parallel.
+     * Executes the given consumer for each tracked object in parallel.
      * 
-     * @param block
-     *            the block
+     * @param consumer
+     *            the consumer
      */
-    public void forEachTrackedObject(final BiConsumer<T, Position> block) {
-        requireNonNull(block, "block is null");
+    public void forEachTrackedObject(final BiConsumer<T, Position> consumer) {
+        requireNonNull(consumer, "consumer is null");
         trackedObjects.forEachInParallel(new BiAction<T, PositionTime>() {
             @Override
             public void apply(T t, PositionTime pt) {
                 // pt.time is from the first time we encountered the position.
                 // We might have gotten messages with the position but different timestamps
                 // To avoid confusion we do not export the timestamp out
-                block.accept(t, Position.create(pt.getLatitude(), pt.getLongitude()));
+                consumer.accept(t, Position.create(pt.getLatitude(), pt.getLongitude()));
             }
         });
     }
@@ -139,11 +139,11 @@ public class Subscription<T> {
             PositionTime current = trackedObjects.get(t);
             boolean positionChanged = current == null || pt == null || !current.positionEquals(pt);
             if (current == null) {// not tracked
-                if (shapeEntering.containedWithin(pt)) {
+                if (shapeEntering.contains(pt)) {
                     trackedObjects.put(t, pt);
                     handler.entering(t, pt);
                 }
-            } else if (!shapeExiting.containedWithin(pt)) {
+            } else if (!shapeExiting.contains(pt)) {
                 handler.exiting(t);
                 trackedObjects.remove(t);
             } else {
