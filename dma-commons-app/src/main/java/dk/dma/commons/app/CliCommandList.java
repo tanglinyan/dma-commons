@@ -36,12 +36,12 @@ public class CliCommandList {
         this.name = requireNonNull(name);
     }
 
-    public void add(String name, String description, Command cmd) {
+    public final void add(String name, String description, Command cmd) {
         helpText.put(requireNonNull(name), requireNonNull(description));
         command.put(name, requireNonNull(cmd));
     }
 
-    public void invoke(String[] args) throws Exception {
+    public final void invoke(String[] args) throws Exception {
         // So we have to write some custom code.
         ArrayList<String> list = new ArrayList<>(Arrays.asList(args));
         int cmdIndex = 0;
