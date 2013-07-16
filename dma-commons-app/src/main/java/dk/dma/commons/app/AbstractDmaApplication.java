@@ -74,7 +74,7 @@ public abstract class AbstractDmaApplication {
         this.applicationName = requireNonNull(applicationName);
     }
 
-    protected synchronized void addModule(Module module) {
+    protected final void addModule(Module module) {
         modules.add(requireNonNull(module));
     }
 
@@ -109,6 +109,7 @@ public abstract class AbstractDmaApplication {
 
     void execute() throws Exception {
         defaultModule();
+        configure();
         Injector i = Guice.createInjector(modules);
         // Management
         tryManage(this);

@@ -40,7 +40,12 @@
       <artifactId>enav-util</artifactId>
       <version>${project.version}</version>
     </dependency>
-    
+    <dependency>
+      <groupId>joda-time</groupId>
+      <artifactId>joda-time</artifactId>
+      <version>2.2</version>
+    </dependency>
+            
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
