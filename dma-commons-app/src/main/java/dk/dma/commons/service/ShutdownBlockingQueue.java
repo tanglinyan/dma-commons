@@ -83,6 +83,8 @@ public class ShutdownBlockingQueue<E> extends AbstractQueue<E> implements Blocki
      * advance to head.next.
      */
 
+    private final CountDownLatch partialShutdown = new CountDownLatch(1);
+
     private final CountDownLatch fullyShutdown = new CountDownLatch(2);
 
     /** The capacity bound, or Integer.MAX_VALUE if none */
@@ -325,7 +327,7 @@ public class ShutdownBlockingQueue<E> extends AbstractQueue<E> implements Blocki
      * @see #isTerminated()
      */
     boolean isShutdown() {
-        return fullyShutdown.getCount() < 2;
+        return partialShutdown.getCount() == 0;
     }
 
     /**
@@ -340,6 +342,7 @@ public class ShutdownBlockingQueue<E> extends AbstractQueue<E> implements Blocki
     void shutdown() {
         fullyLock();
         try {
+            partialShutdown.countDown();
             if (fullyShutdown.getCount() == 2) {
                 capacity = 0;
                 fullyShutdown.countDown();// when the queue is completely methods countdown
@@ -351,10 +354,14 @@ public class ShutdownBlockingQueue<E> extends AbstractQueue<E> implements Blocki
         signalNotFull();
     }
 
+    public boolean awaitShutdown(long timeout, TimeUnit unit) throws InterruptedException {
+        return partialShutdown.await(timeout, unit);
+    }
+
     /**
      * Awaits that both the queue is shutdown and all elements have been taken.
      */
-    public boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
+    public boolean awaitFullyTerminated(long timeout, TimeUnit unit) throws InterruptedException {
         return fullyShutdown.await(timeout, unit);
     }
 

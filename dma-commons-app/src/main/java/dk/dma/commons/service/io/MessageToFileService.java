@@ -39,9 +39,9 @@ import dk.dma.enav.util.function.LongFunction;
  * 
  * @author Kasper Nielsen
  */
-public class FileWriterService<T> extends AbstractBatchedStage<T> {
+public class MessageToFileService<T> extends AbstractBatchedStage<T> {
 
-    private static final Logger LOG = LoggerFactory.getLogger(FileWriterService.class);
+    private static final Logger LOG = LoggerFactory.getLogger(MessageToFileService.class);
 
     private Path currentPath;
 
@@ -67,46 +67,39 @@ public class FileWriterService<T> extends AbstractBatchedStage<T> {
      * @param queueSize
      * @param maxBatchSize
      */
-    FileWriterService(Path root, String filename, OutputStreamSink<T> sink, LongFunction<T> toTime, long maxSize) {
+    MessageToFileService(Path root, String filename, OutputStreamSink<T> sink, LongFunction<T> toTime, long maxSize) {
         super(10000, 100);
         this.root = requireNonNull(root);
         this.filename = requireNonNull(filename);
         this.sink = requireNonNull(sink);
-        this.toTime = toTime;
+        this.toTime = requireNonNull(toTime);
         this.maxSize = maxSize;
         sdf = toTime == null ? null : new SimpleDateFormat(filename);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** Writes every message to a file */
     @Override
     protected void handleMessages(List<T> messages) throws IOException {
         lock.lock();
         try {
             for (T t : messages) {
-                System.out.println("SAVINDSINSG");
-                if (toTime == null) {
-                    throw new UnsupportedOperationException();
-                } else {
-                    long time = toTime.applyAsLong(t);
-                    if (time < lastTime) {
-                        System.err.println("Cannot go backwards, last time =" + lastTime + ", currenttime=" + time
-                                + " writing anyways");
-                        time = lastTime;
-                    }
-                    // We check the time once every second
-                    if (currentPath == null || time / 1000 == lastTime / 1000) {
-                        Path p = root.resolve(sdf.format(new Date(time)));
-                        if (!Objects.equal(p, currentPath)) {
-                            ros.roll(p);
-                            currentPath = p;
-                            LOG.info("Opening file " + p + " for backup");
-                        }
-                    }
-                    sink.process(ros.getPublicStream(), t);
-                    lastTime = time;
+                long time = toTime.applyAsLong(t);
+                if (time < lastTime) {
+                    System.err.println("Cannot go backwards, last time =" + lastTime + ", currenttime=" + time
+                            + " writing anyways");
+                    time = lastTime;
                 }
+                // If current file is null (initial), or time differs from last time by more than 1 second
+                if (currentPath == null || time / 1000 != lastTime / 1000) {
+                    Path p = root.resolve(sdf.format(new Date(time))); // create new path
+                    if (!Objects.equal(p, currentPath)) { // is the new path identical to the old path
+                        LOG.info("Opening file " + p.toAbsolutePath() + " for backup");
+                        ros.roll(p); // create a new file
+                        currentPath = p;
+                    }
+                }
+                sink.process(ros.getPublicStream(), t);
+                lastTime = time;
             }
         } finally {
             lock.unlock();
@@ -124,36 +117,27 @@ public class FileWriterService<T> extends AbstractBatchedStage<T> {
         } finally {
             lock.unlock();
         }
-
     }
 
-    public static <T> FileWriterService<T> chunkedService(Path root, String filename, OutputStreamSink<T> sink,
-            long maxSize) {
-        return new FileWriterService<>(root, filename, sink, null, maxSize);
-    }
-
-    public static <T> FileWriterService<T> dateService(Path root, String filename, OutputStreamSink<T> sink) {
-        return new FileWriterService<>(root, validateFilename(root, filename), sink, new LongFunction<T>() {
-
-            @Override
+    /**
+     * Creates a new MessageToFileService.
+     * 
+     * @param root
+     *            the root directory to write to
+     * @param filenamePattern
+     *            the filename pattern
+     * @param sink
+     *            the sink
+     * @return
+     */
+    public static <T> MessageToFileService<T> dateTimeService(Path root, String filenamePattern,
+            OutputStreamSink<T> sink) {
+        return new MessageToFileService<>(root, validateFilename(root, filenamePattern), sink, new LongFunction<T>() {
             public long applyAsLong(T element) {
                 return System.currentTimeMillis();
             }
         }, Long.MAX_VALUE);
     }
-
-    public static <T> FileWriterService<T> dateService(Path root, String filename, OutputStreamSink<T> sink,
-            LongFunction<T> toTime) {
-        return new FileWriterService<>(root, validateFilename(root, filename), sink, requireNonNull(toTime),
-                Long.MAX_VALUE);
-    }
-
-    //
-    // public static void main(String[] args) {
-    // System.out
-    // .println(validateFilename(Paths.get("/Users/kasperni/test"), "'a\nismessages'-YYYYd/d-H-m.'txt.zip'"));
-    // System.out.println("bye");
-    // }
 
     static String validateFilename(Path root, String filename) {
         requireNonNull(root, "root is null");
@@ -191,5 +175,4 @@ public class FileWriterService<T> extends AbstractBatchedStage<T> {
             return Scheduler.newFixedRateSchedule(1, 1, TimeUnit.SECONDS);
         }
     }
-
 }

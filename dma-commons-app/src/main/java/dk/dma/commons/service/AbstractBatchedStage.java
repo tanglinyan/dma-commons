@@ -40,7 +40,7 @@ public abstract class AbstractBatchedStage<T> extends AbstractMessageProcessorSe
     @Override
     protected final void run() throws Exception {
         executionThread = Thread.currentThread();
-        while (state() == State.RUNNING || !queue.isTerminated()) {
+        while (!isShutdown()) {
             // This is not the most efficient solution but it is good enough for us.
             T t = takeInterruptable();
             if (t != null) {// okay we might have more more than one element
@@ -52,6 +52,10 @@ public abstract class AbstractBatchedStage<T> extends AbstractMessageProcessorSe
             }
         }
         onShutdown();
+    }
+
+    protected boolean isShutdown() {
+        return state() != State.RUNNING || queue.isTerminated();
     }
 
     protected void onShutdown() {}

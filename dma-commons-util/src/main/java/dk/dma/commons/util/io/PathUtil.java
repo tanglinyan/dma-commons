@@ -17,20 +17,28 @@ package dk.dma.commons.util.io;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 /**
  * 
  * @author Kasper Nielsen
  */
 public class PathUtil {
+
+    /**
+     * If the specified path does not exist. Returns the specified path. Otherwise returns a unique path similar to the
+     * specified path.
+     * 
+     * @param path
+     *            the patch to check
+     * @return a unique path
+     */
     public static Path findUnique(Path path) {
         if (!Files.exists(path)) {
             return path;
         }
         String filename = path.getFileName().toString();
         String postfix = "";
-        if (filename.contains(".")) {
+        if (filename.contains(".")) { // has suffix
             postfix = filename.substring(filename.indexOf('.'));
             filename = filename.substring(0, filename.indexOf('.'));
         }
@@ -40,11 +48,5 @@ public class PathUtil {
             p = path.resolveSibling(filename + "-" + i++ + postfix);
         } while (Files.exists(p));
         return p;
-    }
-
-    public static void main(String[] args) {
-        Path p = Paths.get("/Users/kasperni/dfff.tmp");
-        findUnique(p);
-
     }
 }

@@ -135,8 +135,9 @@ public abstract class AbstractDmaApplication {
         List<Service> list = new ArrayList<>(services);
         Collections.reverse(list);
         for (Service s : list) {
-            LOG.info("Shutting down " + s.getClass().getName());
+            LOG.info("Trying to shut down " + s.getClass().getName());
             s.stopAndWait();
+            LOG.info("Succeeded in shutting down " + s.getClass().getName());
         }
         LOG.info("All services was succesfully shutdown");
     }

@@ -22,15 +22,14 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import dk.dma.commons.util.io.CountingOutputStream;
 import dk.dma.commons.util.io.IoUtil;
-import dk.dma.commons.util.io.OutputStreamSink;
 import dk.dma.commons.util.io.PathUtil;
-import dk.dma.enav.util.function.EBlock;
 
 /**
  * 
@@ -69,20 +68,6 @@ class RollingOutputStream extends OutputStream {
         }
     }
 
-    public <T> EBlock<T> createProcessor(final OutputStreamSink<T> sink, final long chunkSize) {
-        requireNonNull(sink);
-        if (chunkSize < 1) {
-            throw new IllegalArgumentException("Chunksize must be at least 1, was " + chunkSize);
-        }
-        return new EBlock<T>() {
-            @Override
-            public void accept(T message) throws Exception {
-                sink.process(IoUtil.notCloseable(RollingOutputStream.this), message);
-                rollIfGreaterThan(chunkSize);
-            }
-        };
-    }
-
     /** {@inheritDoc} */
     @Override
     public void flush() throws IOException {
@@ -91,10 +76,20 @@ class RollingOutputStream extends OutputStream {
         }
     }
 
+    /**
+     * Returns the number bytes written to the current file that is open.
+     * 
+     * @return the number bytes written to the current file that is open
+     */
     public long getCurrentFileBytesWritten() {
         return written.get();
     }
 
+    /**
+     * Returns an output stream that cannot be closed.
+     * 
+     * @return an output stream that cannot be closed
+     */
     public OutputStream getPublicStream() {
         return publicStream;
     }
@@ -112,17 +107,19 @@ class RollingOutputStream extends OutputStream {
         if (current == null) {
             written.set(0);
             Path p = nextPath;
-            boolean zip = p.getFileName().toString().endsWith(".zip");
+            boolean isZip = p.getFileName().toString().endsWith(".zip");
             finalPath = p;
             nextPath = p.resolveSibling(p.getFileName().toString() + ".tmp");
-            // big buffer size is important as we do not want to write to disc to often
             nextPath = PathUtil.findUnique(nextPath);
 
             Files.createDirectories(nextPath.getParent());
 
-            current = new BufferedOutputStream(new CountingOutputStream(new CountingOutputStream(
-                    Files.newOutputStream(nextPath), written), totalWritten), 1024 * 1024);
-            if (zip) {
+            System.out.println("Using " + nextPath.toAbsolutePath());
+            // big buffer size is important as we do not want to write to disc to often
+            current = new BufferedOutputStream(new CountingOutputStream(new CountingOutputStream(Files.newOutputStream(
+                    nextPath, StandardOpenOption.CREATE, StandardOpenOption.APPEND), written), totalWritten),
+                    1024 * 1024);
+            if (isZip) {
                 ZipOutputStream zos = new ZipOutputStream(current);
                 zos.putNextEntry(new ZipEntry(p.getFileName().toString().replace(".zip", "")));
                 // big buffer size is important as we do not want to zip to often
@@ -137,16 +134,7 @@ class RollingOutputStream extends OutputStream {
     }
 
     /**
-     * Rolls the current output file
-     * 
-     * @throws IOException
-     */
-    public void roll() throws IOException {
-        close();
-    }
-
-    /**
-     * Rolls the current output file
+     * Closes (if open) the current output file. And sets the name of the file that should be openen next
      * 
      * @param nextPath
      *            the name of the output file (excluding .zip)
@@ -157,23 +145,39 @@ class RollingOutputStream extends OutputStream {
         this.nextPath = requireNonNull(nextPath);
     }
 
-    void rollIfGreaterThan(long maxFileSize) throws IOException {
-        if (maxFileSize < 1) {
-            throw new IllegalArgumentException("maxFileSize must be at least 1, was " + maxFileSize);
-        } else if (getCurrentFileBytesWritten() >= maxFileSize) {
-            roll();
-        }
-    }
-
     /** {@inheritDoc} */
     @Override
     public void write(byte[] b, int off, int len) throws IOException {
         lazyOutput().write(b, off, len);
+        lazyOutput().flush();
     }
 
     /** {@inheritDoc} */
     @Override
     public void write(int b) throws IOException {
         lazyOutput().write(b);
+        lazyOutput().flush();
     }
 }
+
+// void rollIfGreaterThan(long maxFileSize) throws IOException {
+// if (maxFileSize < 1) {
+// throw new IllegalArgumentException("maxFileSize must be at least 1, was " + maxFileSize);
+// } else if (getCurrentFileBytesWritten() >= maxFileSize) {
+// close();
+// }
+// }
+
+// public <T> EBlock<T> createProcessor(final OutputStreamSink<T> sink, final long chunkSize) {
+// requireNonNull(sink);
+// if (chunkSize < 1) {
+// throw new IllegalArgumentException("Chunksize must be at least 1, was " + chunkSize);
+// }
+// return new EBlock<T>() {
+// @Override
+// public void accept(T message) throws Exception {
+// sink.process(IoUtil.notCloseable(RollingOutputStream.this), message);
+// rollIfGreaterThan(chunkSize);
+// }
+// };
+// }

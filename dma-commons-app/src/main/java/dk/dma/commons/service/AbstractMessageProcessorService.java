@@ -113,6 +113,9 @@ public abstract class AbstractMessageProcessorService<T> extends AbstractExecuti
                 t.interrupt();
             }
         }
+    }
 
+    protected void sleepUntilShutdown(long time, TimeUnit unit) throws InterruptedException {
+        queue.awaitShutdown(time, unit);
     }
 }
