@@ -48,6 +48,7 @@ public abstract class AbstractDaemon extends AbstractCommandLineTool {
             public void run() {
                 LOG.info("Shutdown request received");
                 preShutdown();
+                isShutdown.countDown();
                 shutdown();
                 postShutdown();
                 LOG.info("Shutdown finished");

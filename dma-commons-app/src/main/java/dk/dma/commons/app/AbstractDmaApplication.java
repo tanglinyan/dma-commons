@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import javax.management.DynamicMBean;
 import javax.management.MBeanServer;
@@ -59,8 +60,11 @@ public abstract class AbstractDmaApplication {
 
     static final Logger LOG = LoggerFactory.getLogger(AbstractDmaApplication.class);
 
+    final CountDownLatch isShutdown = new CountDownLatch(1);
+
     AbstractDmaApplication() {
-        applicationName = getClass().getSimpleName();
+        String cliName = CliCommandList.CLI_APP_NAME.get();
+        applicationName = cliName == null ? getClass().getSimpleName() : cliName;
     }
 
     /**
@@ -106,6 +110,10 @@ public abstract class AbstractDmaApplication {
     }
 
     protected abstract void run(Injector injector) throws Exception;
+
+    public void sleepUnlessShutdown(long timeout, TimeUnit unit) throws InterruptedException {
+        isShutdown.await(timeout, unit);
+    }
 
     void execute() throws Exception {
         defaultModule();
@@ -177,5 +185,16 @@ public abstract class AbstractDmaApplication {
             ObjectName objectName = new ObjectName(c.getPackage().getName() + ":type=" + c.getSimpleName());
             mb.registerMBean(mbean, objectName);
         }
+    }
+
+    private final Management management = new Management();
+
+    public Management withManagement() {
+        return management;
+    }
+
+    public static class Management {
+        volatile String d;
+
     }
 }

@@ -31,6 +31,7 @@ public class CliCommandList {
     private final String name;
     private final Map<String, String> helpText = new LinkedHashMap<>();// keep registration order
     private final Map<String, Command> command = new LinkedHashMap<>();
+    static final ThreadLocal<String> CLI_APP_NAME = new ThreadLocal<>();
 
     public CliCommandList(String name) {
         this.name = requireNonNull(name);
@@ -59,7 +60,12 @@ public class CliCommandList {
         } else {
             list.remove(cmdIndex);
             args = list.toArray(new String[list.size()]);
-            c.execute(args);
+            CLI_APP_NAME.set(name); // makes sure we use the name of this list, and not the original app name
+            try {
+                c.execute(args);
+            } finally {
+                CLI_APP_NAME.remove();
+            }
         }
     }
 

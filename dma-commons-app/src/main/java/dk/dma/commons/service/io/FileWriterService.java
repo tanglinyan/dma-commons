@@ -19,7 +19,6 @@ import static java.util.Objects.requireNonNull;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -86,6 +85,7 @@ public class FileWriterService<T> extends AbstractBatchedStage<T> {
         lock.lock();
         try {
             for (T t : messages) {
+                System.out.println("SAVINDSINSG");
                 if (toTime == null) {
                     throw new UnsupportedOperationException();
                 } else {
@@ -148,11 +148,12 @@ public class FileWriterService<T> extends AbstractBatchedStage<T> {
                 Long.MAX_VALUE);
     }
 
-    public static void main(String[] args) {
-        System.out
-                .println(validateFilename(Paths.get("/Users/kasperni/test"), "'a\nismessages'-YYYYd/d-H-m.'txt.zip'"));
-        System.out.println("bye");
-    }
+    //
+    // public static void main(String[] args) {
+    // System.out
+    // .println(validateFilename(Paths.get("/Users/kasperni/test"), "'a\nismessages'-YYYYd/d-H-m.'txt.zip'"));
+    // System.out.println("bye");
+    // }
 
     static String validateFilename(Path root, String filename) {
         requireNonNull(root, "root is null");

@@ -32,6 +32,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.FileTime;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
@@ -89,6 +90,24 @@ public class IoUtil {
             filename = filename + "-" + postfix;
         }
         return base.getParent().resolve(filename);
+    }
+
+    public static Path findLatestModified(Iterable<Path> i) throws IOException {
+        Path latest = null;
+        FileTime latestTime = null;
+        for (Path p : i) {
+            if (latest == null) {
+                latest = p;
+                latestTime = Files.getLastModifiedTime(p);
+            } else {
+                FileTime t = Files.getLastModifiedTime(p);
+                if (t.compareTo(latestTime) > 0) {
+                    latest = p;
+                    latestTime = t;
+                }
+            }
+        }
+        return latest;
     }
 
     public static String addTimeStampGetPostFix(Date now, TimeUnit unit) {
