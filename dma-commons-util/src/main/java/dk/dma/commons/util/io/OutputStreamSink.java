@@ -57,7 +57,7 @@ public abstract class OutputStreamSink<T> {
 
     // Returns a new sink that closes the stream
     public final OutputStreamSink<T> closeWhenFooterWritten() {
-        return new OutputStreamSink<T>() {
+        return new DelegatingOutputStreamSink<T>(this) {
             @Override
             public void footer(OutputStream stream) throws IOException {
                 try {
@@ -65,16 +65,6 @@ public abstract class OutputStreamSink<T> {
                 } finally {
                     stream.close();
                 }
-            }
-
-            @Override
-            public void header(OutputStream stream) throws IOException {
-                OutputStreamSink.this.header(stream);
-            }
-
-            @Override
-            public void process(OutputStream stream, T message) throws IOException {
-                OutputStreamSink.this.process(stream, message);
             }
         };
     }
@@ -88,17 +78,7 @@ public abstract class OutputStreamSink<T> {
      */
     public final OutputStreamSink<T> filter(final Predicate<T> filter) {
         requireNonNull(filter);
-        return new OutputStreamSink<T>() {
-            @Override
-            public void footer(OutputStream stream) throws IOException {
-                OutputStreamSink.this.footer(stream);
-            }
-
-            @Override
-            public void header(OutputStream stream) throws IOException {
-                OutputStreamSink.this.header(stream);
-            }
-
+        return new DelegatingOutputStreamSink<T>(this) {
             @Override
             public void process(OutputStream stream, T message) throws IOException {
                 if (filter.test(message)) {
@@ -115,26 +95,45 @@ public abstract class OutputStreamSink<T> {
     @SuppressWarnings("unused")
     public void header(OutputStream stream) throws IOException {}
 
-    public abstract void process(OutputStream stream, T message) throws IOException;
-
-    protected final OutputStreamSink<T> writeFooter(final String footer, final Charset charset) {
-        requireNonNull(footer);
-        requireNonNull(charset);
+    /**
+     * 
+     * 
+     * @param charset
+     *            the charset that should be used for encoding
+     * @return
+     */
+    public final OutputStreamSink<T> newFlushEveryTimeSink() {
         return new OutputStreamSink<T>() {
             @Override
             public void footer(OutputStream stream) throws IOException {
                 OutputStreamSink.this.footer(stream);
-                stream.write(footer.getBytes(charset));
+                stream.flush();
             }
 
             @Override
             public void header(OutputStream stream) throws IOException {
                 OutputStreamSink.this.header(stream);
+                stream.flush();
             }
 
             @Override
             public void process(OutputStream stream, T message) throws IOException {
                 OutputStreamSink.this.process(stream, message);
+                stream.flush();
+            }
+        };
+    }
+
+    public abstract void process(OutputStream stream, T message) throws IOException;
+
+    protected final OutputStreamSink<T> writeFooter(final String footer, final Charset charset) {
+        requireNonNull(footer);
+        requireNonNull(charset);
+        return new DelegatingOutputStreamSink<T>(this) {
+            @Override
+            public void footer(OutputStream stream) throws IOException {
+                OutputStreamSink.this.footer(stream);
+                stream.write(footer.getBytes(charset));
             }
         };
     }
@@ -146,21 +145,11 @@ public abstract class OutputStreamSink<T> {
     protected final OutputStreamSink<T> writeHeader(final String header, final Charset charset) {
         requireNonNull(header);
         requireNonNull(charset);
-        return new OutputStreamSink<T>() {
-            @Override
-            public void footer(OutputStream stream) throws IOException {
-                OutputStreamSink.this.footer(stream);
-            }
-
+        return new DelegatingOutputStreamSink<T>(this) {
             @Override
             public void header(OutputStream stream) throws IOException {
                 stream.write(header.getBytes(charset));
                 OutputStreamSink.this.header(stream);
-            }
-
-            @Override
-            public void process(OutputStream stream, T message) throws IOException {
-                OutputStreamSink.this.process(stream, message);
             }
         };
     }
@@ -189,32 +178,64 @@ public abstract class OutputStreamSink<T> {
         };
     }
 
-    /**
-     * 
-     * 
-     * @param charset
-     *            the charset that should be used for encoding
-     * @return
-     */
-    public OutputStreamSink<T> newFlushEveryTimeSink() {
-        return new OutputStreamSink<T>() {
-            @Override
-            public void footer(OutputStream stream) throws IOException {
-                OutputStreamSink.this.footer(stream);
-                stream.flush();
-            }
+    static class DelegatingOutputStreamSink<T> extends OutputStreamSink<T> {
+        private final OutputStreamSink<T> oss;
 
-            @Override
-            public void header(OutputStream stream) throws IOException {
-                OutputStreamSink.this.header(stream);
-                stream.flush();
-            }
+        public DelegatingOutputStreamSink(OutputStreamSink<T> oss) {
+            this.oss = requireNonNull(oss);
+        }
 
-            @Override
-            public void process(OutputStream stream, T message) throws IOException {
-                OutputStreamSink.this.process(stream, message);
-                stream.flush();
-            }
-        };
+        /**
+         * @param obj
+         * @return
+         * @see java.lang.Object#equals(java.lang.Object)
+         */
+        public boolean equals(Object obj) {
+            return oss.equals(obj);
+        }
+
+        /**
+         * @param stream
+         * @throws IOException
+         * @see dk.dma.commons.util.io.OutputStreamSink#footer(java.io.OutputStream)
+         */
+        public void footer(OutputStream stream) throws IOException {
+            oss.footer(stream);
+        }
+
+        /**
+         * @return
+         * @see java.lang.Object#hashCode()
+         */
+        public int hashCode() {
+            return oss.hashCode();
+        }
+
+        /**
+         * @param stream
+         * @throws IOException
+         * @see dk.dma.commons.util.io.OutputStreamSink#header(java.io.OutputStream)
+         */
+        public void header(OutputStream stream) throws IOException {
+            oss.header(stream);
+        }
+
+        /**
+         * @param stream
+         * @param message
+         * @throws IOException
+         * @see dk.dma.commons.util.io.OutputStreamSink#process(java.io.OutputStream, java.lang.Object)
+         */
+        public void process(OutputStream stream, T message) throws IOException {
+            oss.process(stream, message);
+        }
+
+        /**
+         * @return
+         * @see java.lang.Object#toString()
+         */
+        public String toString() {
+            return oss.toString();
+        }
     }
 }
