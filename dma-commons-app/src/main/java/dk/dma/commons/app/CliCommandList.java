@@ -17,6 +17,7 @@ package dk.dma.commons.app;
 
 import static java.util.Objects.requireNonNull;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -35,6 +36,22 @@ public class CliCommandList {
 
     public CliCommandList(String name) {
         this.name = requireNonNull(name);
+    }
+
+    public final void add(Class<?> main, String name, String description) {
+        final Method m;
+        try {
+            m = main.getMethod("main", String[].class);
+        } catch (NoSuchMethodException e) {
+            throw new IllegalArgumentException("Could not find a main(String[] args) method");
+        }
+        helpText.put(requireNonNull(name), requireNonNull(description));
+        command.put(name, new Command() {
+            public void execute(String[] args) throws Exception {
+                m.invoke(null, (Object[]) args);
+            }
+        });
+
     }
 
     public final void add(String name, String description, Command cmd) {
