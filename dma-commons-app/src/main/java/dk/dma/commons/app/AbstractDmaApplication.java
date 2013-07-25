@@ -121,15 +121,18 @@ public abstract class AbstractDmaApplication {
         Injector i = Guice.createInjector(modules);
         // Management
         tryManage(this);
-        run(i);
-        // Shutdown in reverse order
-        Collections.reverse(services);
-        for (Service s : services) {
-            s.stopAndWait();
+        try {
+            run(i);
+        } finally {
+            // Shutdown in reverse order
+            Collections.reverse(services);
+            for (Service s : services) {
+                s.stopAndWait();
+            }
         }
     }
 
-    protected void shutdown() {
+    public void shutdown() {
         LOG.info("Shutting down all services");
         // shutdown services in reverse order
         List<Service> list = new ArrayList<>(services);

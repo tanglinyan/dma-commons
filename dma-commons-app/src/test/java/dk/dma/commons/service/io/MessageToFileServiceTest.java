@@ -29,6 +29,7 @@ import dk.dma.commons.util.io.OutputStreamSink;
  */
 public class MessageToFileServiceTest {
 
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     @Test
     public void test() throws IOException {
         MessageToFileService<Integer> s = MessageToFileService.dateTimeService(Paths.get("."), "yyyy",

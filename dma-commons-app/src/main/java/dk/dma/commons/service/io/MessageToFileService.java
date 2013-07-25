@@ -30,10 +30,10 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Objects;
 import com.google.common.util.concurrent.AbstractScheduledService;
+import com.google.common.util.concurrent.Service;
 
 import dk.dma.commons.service.AbstractBatchedStage;
 import dk.dma.commons.util.io.OutputStreamSink;
-import dk.dma.enav.util.function.LongFunction;
 
 /**
  * 
@@ -41,40 +41,47 @@ import dk.dma.enav.util.function.LongFunction;
  */
 public class MessageToFileService<T> extends AbstractBatchedStage<T> {
 
-    private static final Logger LOG = LoggerFactory.getLogger(MessageToFileService.class);
+    static final Logger LOG = LoggerFactory.getLogger(MessageToFileService.class);
 
-    private Path currentPath;
+    Path currentPath;
 
     final String filename;
 
-    private long lastTime = -1;
+    long lastTime = -1;
 
     final ReentrantLock lock = new ReentrantLock();
 
     final long maxSize;
 
-    private final Path root;
+    final Path root;
 
     final RollingOutputStream ros = new RollingOutputStream();
 
-    private final SimpleDateFormat sdf;
+    final SimpleDateFormat sdf;
 
-    private final OutputStreamSink<T> sink;
-
-    private final LongFunction<T> toTime;
+    final OutputStreamSink<T> sink;
 
     /**
      * @param queueSize
      * @param maxBatchSize
      */
-    MessageToFileService(Path root, String filename, OutputStreamSink<T> sink, LongFunction<T> toTime, long maxSize) {
+    MessageToFileService(Path root, String filename, OutputStreamSink<T> sink, long maxSize) {
         super(10000, 100);
         this.root = requireNonNull(root);
         this.filename = requireNonNull(filename);
         this.sink = requireNonNull(sink);
-        this.toTime = requireNonNull(toTime);
         this.maxSize = maxSize;
-        sdf = toTime == null ? null : new SimpleDateFormat(filename);
+        sdf = new SimpleDateFormat(filename);
+    }
+
+    long time() {
+        long time = System.currentTimeMillis();
+        if (time < lastTime) {
+            System.err.println("Cannot go backwards, last time =" + lastTime + ", currenttime=" + time
+                    + " writing anyways");
+            time = lastTime;
+        }
+        return time;
     }
 
     /** Writes every message to a file */
@@ -83,12 +90,7 @@ public class MessageToFileService<T> extends AbstractBatchedStage<T> {
         lock.lock();
         try {
             for (T t : messages) {
-                long time = toTime.applyAsLong(t);
-                if (time < lastTime) {
-                    System.err.println("Cannot go backwards, last time =" + lastTime + ", currenttime=" + time
-                            + " writing anyways");
-                    time = lastTime;
-                }
+                long time = time();
                 // If current file is null (initial), or time differs from last time by more than 1 second
                 if (currentPath == null || time / 1000 != lastTime / 1000) {
                     Path p = root.resolve(sdf.format(new Date(time))); // create new path
@@ -132,11 +134,7 @@ public class MessageToFileService<T> extends AbstractBatchedStage<T> {
      */
     public static <T> MessageToFileService<T> dateTimeService(Path root, String filenamePattern,
             OutputStreamSink<T> sink) {
-        return new MessageToFileService<>(root, validateFilename(root, filenamePattern), sink, new LongFunction<T>() {
-            public long applyAsLong(T element) {
-                return System.currentTimeMillis();
-            }
-        }, Long.MAX_VALUE);
+        return new MessageToFileService<>(root, validateFilename(root, filenamePattern), sink, Long.MAX_VALUE);
     }
 
     static String validateFilename(Path root, String filename) {
@@ -147,25 +145,34 @@ public class MessageToFileService<T> extends AbstractBatchedStage<T> {
         return filename;
     }
 
+    /**
+     * Starts the flushing thread. We need this situations where we do not have a constant inflow of messages. Since
+     * files can only be closed when a new file arrives (see code in {@link #handleMessages(List)}. We need to
+     * periodically check, if no messages arrive for a period, if a file should be closed.
+     * 
+     * @return
+     */
+    public Service startFlushThread() {
+        return new FlushThread();
+    }
+
     class FlushThread extends AbstractScheduledService {
 
         protected void runOneIteration() throws Exception {
             lock.lock();
             try {
-                ros.flush();
-                // Hmm vi ved ikke hvornaar vi kan lukke den
-                // long time = toTime.applyAsLong(t);
-                // if (time > lastTime) {
-                // if (currentPath != null) {
-                // Path p = root.resolve(sdf.format(new Date(time)));
-                // if (!Objects.equal(p, currentPath)) {
-                // ros.roll(p);
-                // currentPath = p;
-                // }
-                // }
-                // }
-                // We check the time once every second
-
+                try {
+                    ros.flush();
+                    if (currentPath != null) {
+                        Path p = root.resolve(sdf.format(new Date(time()))); // create new path
+                        if (!Objects.equal(p, currentPath)) { // is the new path identical to the old path
+                            currentPath = null;
+                            ros.close();
+                        }
+                    }
+                } catch (IOException e) {
+                    LOG.error("FlushThread failed", e);
+                }
             } finally {
                 lock.unlock();
             }
