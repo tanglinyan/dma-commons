@@ -69,6 +69,11 @@ public class PositionTracker<T> {
         });
     }
 
+    public PositionTime getLatestIfLaterThan(T target, long time) {
+        PositionTime t = getLatest(target);
+        return t != null && time < t.getTime() ? t : null;
+    }
+
     /**
      * Returns the latest position time updated for the specified target. Or <code>null</code> if no position has ever
      * been recorded for the target.

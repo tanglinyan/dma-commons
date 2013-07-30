@@ -23,7 +23,6 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
 import dk.dma.enav.util.function.Consumer;
-import dk.dma.enav.util.function.Predicate;
 
 /**
  * <p>
@@ -44,6 +43,12 @@ public abstract class OutputStreamSink<T> {
     public static final OutputStreamSink<?> TO_STRING_US_ASCII_SINK = toStringSink(StandardCharsets.US_ASCII);
 
     public static final OutputStreamSink<?> TO_STRING_UTF8_SINK = toStringSink(StandardCharsets.UTF_8);
+
+    public void writeAll(Iterable<T> iterable, OutputStream os) throws IOException {
+        for (T t : iterable) {
+            process(os, t);
+        }
+    }
 
     public final Consumer<T> asConsumer(final OutputStream os) {
         requireNonNull(os);
@@ -69,25 +74,25 @@ public abstract class OutputStreamSink<T> {
         };
     }
 
-    /**
-     * Returns a new sink that will only write messages that are accepted by the specified filter
-     * 
-     * @param filter
-     *            the filter to test each message against
-     * @return a new filtered sink
-     */
-    public final OutputStreamSink<T> filter(final Predicate<T> filter) {
-        requireNonNull(filter);
-        return new DelegatingOutputStreamSink<T>(this) {
-            @Override
-            public void process(OutputStream stream, T message) throws IOException {
-                if (filter.test(message)) {
-                    OutputStreamSink.this.process(stream, message);
-                }
-            }
-
-        };
-    }
+    // /**
+    // * Returns a new sink that will only write messages that are accepted by the specified filter
+    // *
+    // * @param filter
+    // * the filter to test each message against
+    // * @return a new filtered sink
+    // */
+    // public final OutputStreamSink<T> filter(final Predicate<T> filter) {
+    // requireNonNull(filter);
+    // return new DelegatingOutputStreamSink<T>(this) {
+    // @Override
+    // public void process(OutputStream stream, T message) throws IOException {
+    // if (filter.test(message)) {
+    // OutputStreamSink.this.process(stream, message);
+    // }
+    // }
+    //
+    // };
+    // }
 
     @SuppressWarnings("unused")
     public void footer(OutputStream stream) throws IOException {}
