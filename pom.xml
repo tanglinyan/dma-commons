@@ -6,7 +6,7 @@
   <parent>
     <groupId>dk.dma</groupId>
     <artifactId>dma-root-pom</artifactId>
-    <version>8</version>
+    <version>9</version>
   </parent>
 
   <groupId>dk.dma.commons</groupId>
@@ -21,6 +21,7 @@
     <module>dma-commons-management</module>
     <module>dma-commons-tracker</module>
     <module>dma-commons-util</module>
+    <module>dma-commons-web</module>
   </modules>
 
   <repositories>

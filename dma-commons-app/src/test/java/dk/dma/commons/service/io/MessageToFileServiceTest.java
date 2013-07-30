@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.Arrays;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import dk.dma.commons.util.io.OutputStreamSink;
@@ -31,6 +32,7 @@ public class MessageToFileServiceTest {
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
     @Test
+    @Ignore
     public void test() throws IOException {
         MessageToFileService<Integer> s = MessageToFileService.dateTimeService(Paths.get("."), "yyyy",
                 (OutputStreamSink) OutputStreamSink.TO_STRING_US_ASCII_SINK);

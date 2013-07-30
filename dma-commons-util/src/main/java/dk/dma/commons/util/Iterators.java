@@ -54,7 +54,10 @@ public class Iterators {
     public static <T> Iterator<T> combine(Iterable<? extends Iterator<T>> iterators, final Comparator<T> comparator) {
         final PriorityQueue<Entry<T>> q = new PriorityQueue<>();
         for (Iterator<T> i : iterators) {
-            q.add(new Entry<>(i, requireNonNull(comparator)));
+            Entry<T> e = new Entry<>(i, requireNonNull(comparator));
+            if (e.next != null) { // only add it if it has at least 1 entry
+                q.add(e);
+            }
         }
         return new AbstractIterator<T>() {
             @Override
