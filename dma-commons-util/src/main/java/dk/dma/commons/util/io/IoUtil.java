@@ -45,8 +45,8 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class IoUtil {
 
-    public static void writeAscii(String ascii, OutputStream os) throws IOException {
-        os.write(ascii.getBytes(StandardCharsets.US_ASCII));
+    public static void writeAscii(CharSequence ascii, OutputStream os) throws IOException {
+        os.write(ascii.toString().getBytes(StandardCharsets.US_ASCII));
     }
 
     public static long recursiveSizeOf(Path p) throws IOException {
