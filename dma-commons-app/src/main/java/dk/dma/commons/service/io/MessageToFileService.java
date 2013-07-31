@@ -61,6 +61,8 @@ public class MessageToFileService<T> extends AbstractBatchedStage<T> {
 
     final OutputStreamSink<T> sink;
 
+    long count;
+
     /**
      * @param queueSize
      * @param maxBatchSize
@@ -97,10 +99,11 @@ public class MessageToFileService<T> extends AbstractBatchedStage<T> {
                     if (!Objects.equal(p, currentPath)) { // is the new path identical to the old path
                         LOG.info("Opening file " + p.toAbsolutePath() + " for backup");
                         ros.roll(p); // create a new file
+                        count = 0;
                         currentPath = p;
                     }
                 }
-                sink.process(ros.getPublicStream(), t);
+                sink.process(ros.getPublicStream(), t, count++);
                 lastTime = time;
             }
         } finally {
@@ -168,6 +171,7 @@ public class MessageToFileService<T> extends AbstractBatchedStage<T> {
                         if (!Objects.equal(p, currentPath)) { // is the new path identical to the old path
                             currentPath = null;
                             ros.close();
+                            count = 0;
                         }
                     }
                 } catch (IOException e) {

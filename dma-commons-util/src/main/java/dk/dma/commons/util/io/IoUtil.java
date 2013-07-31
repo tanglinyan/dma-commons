@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -43,6 +44,10 @@ import java.util.concurrent.atomic.AtomicLong;
  * @author Kasper Nielsen
  */
 public class IoUtil {
+
+    public static void writeAscii(String ascii, OutputStream os) throws IOException {
+        os.write(ascii.getBytes(StandardCharsets.US_ASCII));
+    }
 
     public static long recursiveSizeOf(Path p) throws IOException {
         final AtomicLong size = new AtomicLong();

@@ -17,6 +17,7 @@ package dk.dma.commons.util;
 
 import static java.util.Objects.requireNonNull;
 
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.PriorityQueue;
@@ -51,7 +52,10 @@ public class Iterators {
         };
     }
 
-    public static <T> Iterator<T> combine(Iterable<? extends Iterator<T>> iterators, final Comparator<T> comparator) {
+    public static <T> Iterator<T> combine(Collection<? extends Iterator<T>> iterators, final Comparator<T> comparator) {
+        if (iterators.size() == 1) {
+            return iterators.iterator().next();
+        }
         final PriorityQueue<Entry<T>> q = new PriorityQueue<>();
         for (Iterator<T> i : iterators) {
             Entry<T> e = new Entry<>(i, requireNonNull(comparator));

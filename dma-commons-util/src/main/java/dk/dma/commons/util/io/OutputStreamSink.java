@@ -37,17 +37,20 @@ public abstract class OutputStreamSink<T> {
 
         /** {@inheritDoc} */
         @Override
-        public void process(OutputStream os, Object msg) {}
+        public void process(OutputStream os, Object msg, long count) {}
     };
 
     public static final OutputStreamSink<?> TO_STRING_US_ASCII_SINK = toStringSink(StandardCharsets.US_ASCII);
 
     public static final OutputStreamSink<?> TO_STRING_UTF8_SINK = toStringSink(StandardCharsets.UTF_8);
 
-    public void writeAll(Iterable<T> iterable, OutputStream os) throws IOException {
+    public final void writeAll(Iterable<T> iterable, OutputStream os) throws IOException {
+        header(os);
+        long count = 0;
         for (T t : iterable) {
-            process(os, t);
+            process(os, t, ++count);
         }
+        footer(os, count);
     }
 
     public final Consumer<T> asConsumer(final OutputStream os) {
@@ -64,9 +67,9 @@ public abstract class OutputStreamSink<T> {
     public final OutputStreamSink<T> closeWhenFooterWritten() {
         return new DelegatingOutputStreamSink<T>(this) {
             @Override
-            public void footer(OutputStream stream) throws IOException {
+            public void footer(OutputStream stream, long count) throws IOException {
                 try {
-                    OutputStreamSink.this.footer(stream);
+                    OutputStreamSink.this.footer(stream, count);
                 } finally {
                     stream.close();
                 }
@@ -95,7 +98,7 @@ public abstract class OutputStreamSink<T> {
     // }
 
     @SuppressWarnings("unused")
-    public void footer(OutputStream stream) throws IOException {}
+    public void footer(OutputStream stream, long count) throws IOException {}
 
     @SuppressWarnings("unused")
     public void header(OutputStream stream) throws IOException {}
@@ -110,8 +113,8 @@ public abstract class OutputStreamSink<T> {
     public final OutputStreamSink<T> newFlushEveryTimeSink() {
         return new OutputStreamSink<T>() {
             @Override
-            public void footer(OutputStream stream) throws IOException {
-                OutputStreamSink.this.footer(stream);
+            public void footer(OutputStream stream, long count) throws IOException {
+                OutputStreamSink.this.footer(stream, count);
                 stream.flush();
             }
 
@@ -122,22 +125,22 @@ public abstract class OutputStreamSink<T> {
             }
 
             @Override
-            public void process(OutputStream stream, T message) throws IOException {
-                OutputStreamSink.this.process(stream, message);
+            public void process(OutputStream stream, T message, long count) throws IOException {
+                OutputStreamSink.this.process(stream, message, count);
                 stream.flush();
             }
         };
     }
 
-    public abstract void process(OutputStream stream, T message) throws IOException;
+    public abstract void process(OutputStream stream, T message, long count) throws IOException;
 
     protected final OutputStreamSink<T> writeFooter(final String footer, final Charset charset) {
         requireNonNull(footer);
         requireNonNull(charset);
         return new DelegatingOutputStreamSink<T>(this) {
             @Override
-            public void footer(OutputStream stream) throws IOException {
-                OutputStreamSink.this.footer(stream);
+            public void footer(OutputStream stream, long count) throws IOException {
+                OutputStreamSink.this.footer(stream, count);
                 stream.write(footer.getBytes(charset));
             }
         };
@@ -175,7 +178,7 @@ public abstract class OutputStreamSink<T> {
         return new OutputStreamSink<T>() {
 
             @Override
-            public void process(OutputStream stream, T message) throws IOException {
+            public void process(OutputStream stream, T message, long count) throws IOException {
                 String s = message.toString();
                 stream.write(s.getBytes(charset));
                 stream.write('\n');
@@ -204,8 +207,8 @@ public abstract class OutputStreamSink<T> {
          * @throws IOException
          * @see dk.dma.commons.util.io.OutputStreamSink#footer(java.io.OutputStream)
          */
-        public void footer(OutputStream stream) throws IOException {
-            oss.footer(stream);
+        public void footer(OutputStream stream, long count) throws IOException {
+            oss.footer(stream, count);
         }
 
         /**
@@ -231,8 +234,8 @@ public abstract class OutputStreamSink<T> {
          * @throws IOException
          * @see dk.dma.commons.util.io.OutputStreamSink#process(java.io.OutputStream, java.lang.Object)
          */
-        public void process(OutputStream stream, T message) throws IOException {
-            oss.process(stream, message);
+        public void process(OutputStream stream, T message, long count) throws IOException {
+            oss.process(stream, message, count);
         }
 
         /**

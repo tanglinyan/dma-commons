@@ -142,6 +142,7 @@ class RollingOutputStream extends OutputStream {
      */
     public void roll(Path nextPath) throws IOException {
         close();
+
         this.nextPath = requireNonNull(nextPath);
     }
 
