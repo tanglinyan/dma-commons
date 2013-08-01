@@ -48,10 +48,9 @@ public class CliCommandList {
         helpText.put(requireNonNull(name), requireNonNull(description));
         command.put(name, new Command() {
             public void execute(String[] args) throws Exception {
-                m.invoke(null, (Object[]) args);
+                m.invoke(null, (Object) args);
             }
         });
-
     }
 
     public final void add(String name, String description, Command cmd) {
