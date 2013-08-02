@@ -54,6 +54,14 @@ public class UriQueryUtil {
         return getOneOrZeroParametersOrFail(info, name, null);
     }
 
+    public static Integer getOneOrZeroIntParametersOrFail(UriInfo info, String name, Integer defaultValue) {
+        List<String> p = getParameters(info, name);
+        if (p.size() > 1) {
+            throw new WebApplicationException("Only 1 query parameter of " + name + " allowed");
+        }
+        return p.isEmpty() ? defaultValue : Integer.parseInt(p.get(0));
+    }
+
     public static String getOneOrZeroParametersOrFail(UriInfo info, String name, String defaultValue) {
         List<String> p = getParameters(info, name);
         if (p.size() > 1) {
