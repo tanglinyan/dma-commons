@@ -1,0 +1,340 @@
+/* Copyright (c) 2011 Danish Maritime Authority
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this library.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package dk.dma.commons.util;
+
+import java.io.Serializable;
+import java.text.DecimalFormatSymbols;
+import java.util.concurrent.TimeUnit;
+
+/**
+ * A small utility class for formatting time durations. TimeFormatter instances are generally safe for access by
+ * multiple threads.
+ * 
+ * @author Kasper Nielsen
+ */
+public class DurationFormatter implements Serializable {
+
+    /** serialVersionUID. */
+    private static final long serialVersionUID = -1806478460924436710L;
+
+    /** The platforms decimal separator. */
+    private static final char DECIMAL_SEPERATOR = new DecimalFormatSymbols().getDecimalSeparator();
+
+    /** nanoseconds per microsecond. */
+    private static final long MC_S = 1000L;
+
+    /** nanoseconds per millisecond. */
+    private static final long MS = MC_S * 1000L;
+
+    /** nanoseconds per second. */
+    private static final long S = MS * 1000L;
+
+    /** nanoseconds per minute. */
+    private static final long M = S * 60;
+
+    /** nanoseconds per hour. */
+    private static final long H = M * 60;
+
+    /** nanoseconds per day. */
+    private static final long D = H * 24;
+
+    /** The singular name of the time unit. */
+    private static final String[] NAME = new String[] { "nanosecond", "microsecond", "millisecond", "second", "minute",
+            "hour", "day" };
+
+    /** The plural name of the time unit. */
+    private static final String[] NAMES = new String[] { "nanoseconds", "microseconds", "milliseconds", "seconds",
+            "minutes", "hours", "days" };
+
+    // We use us instead of the more correct u00b5s because we only want to output ASCII characters
+    /** The default SI symbols. */
+    static final String[] SI_SYMBOL = new String[] { "ns", "us", "ms", "s", "min", "h", "d" };
+
+    /** The default time formatter. */
+    public static final DurationFormatter DEFAULT = new DefaultFormatter();
+
+    /** A <tt>TimeFormatter</tt> that will format a duration in the same way as the unix 'uptime' command. */
+    public static final DurationFormatter UPTIME = new UptimeFormatter();
+
+    /**
+     * Formats the specified time parameter.
+     * 
+     * @param nano
+     *            the nanoseconds part
+     * @return the formatted string
+     */
+    protected String doFormat(int nano) {
+        return doFormat(0, nano);
+    }
+
+    /**
+     * Formats the specified time parameters.
+     * 
+     * @param micros
+     *            the microseconds part
+     * @param nano
+     *            the nanoseconds part
+     * 
+     * @return the formatted string
+     */
+    protected String doFormat(int micros, int nano) {
+        return doFormat(0, micros, nano);
+    }
+
+    /**
+     * Formats the specified time parameters.
+     * 
+     * @param millies
+     *            the milliseconds part
+     * @param micros
+     *            the microseconds part
+     * @param nano
+     *            the nanoseconds part
+     * 
+     * @return the formatted string
+     */
+    protected String doFormat(int millies, int micros, int nano) {
+        return doFormat(0, millies, micros, nano);
+    }
+
+    /**
+     * Formats the specified time parameters.
+     * 
+     * @param seconds
+     *            the seconds part
+     * @param millies
+     *            the milliseconds part
+     * @param micros
+     *            the microseconds part
+     * @param nano
+     *            the nanoseconds part
+     * 
+     * @return the formatted string
+     */
+    protected String doFormat(int seconds, int millies, int micros, int nano) {
+        return doFormat(0, seconds, millies, micros, nano);
+    }
+
+    /**
+     * Formats the specified time parameters.
+     * 
+     * @param minutes
+     *            the minutes part
+     * @param seconds
+     *            the seconds part
+     * @param millies
+     *            the milliseconds part
+     * @param micros
+     *            the microseconds part
+     * @param nano
+     *            the nanoseconds part
+     * 
+     * @return the formatted string
+     */
+    protected String doFormat(int minutes, int seconds, int millies, int micros, int nano) {
+        return doFormat(0, minutes, seconds, millies, micros, nano);
+    }
+
+    /**
+     * Formats the specified time parameters.
+     * 
+     * @param hours
+     *            the hours part
+     * @param minutes
+     *            the minutes part
+     * @param seconds
+     *            the seconds part
+     * @param millies
+     *            the milliseconds part
+     * @param micros
+     *            the microseconds part
+     * @param nano
+     *            the nanoseconds part
+     * 
+     * @return the formatted string
+     */
+    protected String doFormat(int hours, int minutes, int seconds, int millies, int micros, int nano) {
+        return doFormat(0, hours, minutes, seconds, millies, micros, nano);
+    }
+
+    /**
+     * Formats the specified time parameters.
+     * 
+     * @param days
+     *            the days part
+     * @param hours
+     *            the hours part
+     * @param minutes
+     *            the minutes part
+     * @param seconds
+     *            the seconds part
+     * @param millies
+     *            the milliseconds part
+     * @param micros
+     *            the microseconds part
+     * @param nano
+     *            the nanoseconds part
+     * 
+     * @return the formatted string
+     */
+    protected String doFormat(int days, int hours, int minutes, int seconds, int millies, int micros, int nano) {
+        return days + " day(s), " + format00(hours) + ":" + format00(minutes) + ":"
+                + format00(seconds + (millies >= 500 ? 1 : 0)) + " hours";
+    }
+
+    /**
+     * Formats the specified time to produce a string.
+     * 
+     * @param time
+     *            the amount of time
+     * @param unit
+     *            the unit of the specified time
+     * @return the formatting string
+     */
+    public String format(long time, TimeUnit unit) {
+        return formatNanos(unit.toNanos(time));
+    }
+
+    /**
+     * Formats the specified time to produce a string.
+     * 
+     * @param millies
+     *            the amount of time in milliseconds
+     * @return the formatting string
+     */
+    public String formatMillies(long millies) {
+        return formatNanos(millies * MS);
+    }
+
+    /**
+     * Formats the specified time to produce a string.
+     * 
+     * @param nanos
+     *            the amount of time in nanos
+     * @return the formatting string
+     */
+    public String formatNanos(long nanos) {
+        if (nanos < MC_S) {
+            return doFormat((int) nanos);
+        } else if (nanos < MS) {
+            return doFormat((int) (nanos / MC_S), (int) (nanos % 1000));
+        } else if (nanos < S) {
+            return doFormat((int) (nanos / MS), (int) (nanos / MC_S % 1000), (int) (nanos % 1000));
+        } else if (nanos < M) {
+            return doFormat((int) (nanos / S), (int) (nanos / MS % 1000), (int) (nanos / MC_S % 1000),
+                    (int) (nanos % 1000));
+        } else if (nanos < H) {
+            return doFormat((int) (nanos / M), (int) (nanos / S % 60), (int) (nanos / MS % 1000),
+                    (int) (nanos / MC_S % 1000), (int) (nanos % 1000));
+        } else if (nanos < D) {
+            return doFormat((int) (nanos / H), (int) (nanos / M % 60), (int) (nanos / S % 60),
+                    (int) (nanos / MS % 1000), (int) (nanos / MC_S % 1000), (int) (nanos % 1000));
+        }
+        return doFormat((int) (nanos / D), (int) (nanos / H % 24), (int) (nanos / M % 60), (int) (nanos / S % 60),
+                (int) (nanos / MS % 1000), (int) (nanos / MC_S % 1000), (int) (nanos % 1000));
+    }
+
+    /**
+     * Returns name of the specified time unit. For example getName(1, TimeUnit.seconds) will return 'second' while
+     * invoking getName(10, TimeUnit.seconds) will return 'seconds'.
+     * 
+     * @param value
+     *            the amount of time
+     * @param unit
+     *            the time unit
+     * @return the name of the specified time unit
+     */
+    protected String getName(long value, TimeUnit unit) {
+        return value == 1 ? NAME[unit.ordinal()] : NAMES[unit.ordinal()];
+    }
+
+    /**
+     * Returns the symbol of the specified time unit. The default implementation returns the standard SI symbol for the
+     * specified time unit.
+     * 
+     * @param unit
+     *            the time unit for which the symbol should be returned
+     * @return the symbol of the specified time unit
+     */
+    protected String getSymbol(TimeUnit unit) {
+        return SI_SYMBOL[unit.ordinal()];
+    }
+
+    /**
+     * Formats the specified values into a <tt>integer-part{decimal separator}decimal-part</tt> format.
+     * 
+     * @param value
+     *            the integer part
+     * @param decimal
+     *            the decimal part
+     * @return the numbers formatted
+     */
+    protected String format_000(int value, int decimal) {
+        return new StringBuilder().append(value).append(DECIMAL_SEPERATOR).append(format000(decimal)).toString();
+    }
+
+    private String format00(int value) {
+        if (value < 10) {
+            return "0" + value;
+        }
+        return Integer.toString(value);
+    }
+
+    private String format000(int value) {
+        if (value < 10) {
+            return "00" + value;
+        } else if (value < 100) {
+            return "0" + value;
+        }
+        return Integer.toString(value);
+    }
+
+    /** The default time formatter. */
+    static class DefaultFormatter extends UptimeFormatter {
+        /** serialVersionUID */
+        private static final long serialVersionUID = -7573098942957592504L;
+
+        /** {@inheritDoc} */
+        @Override
+        protected String doFormat(int nano) {
+            return nano + " " + SI_SYMBOL[0];
+        }
+
+        /** {@inheritDoc} */
+        @Override
+        protected String doFormat(int micros, int nano) {
+            return format_000(micros, nano) + " " + SI_SYMBOL[1];
+        }
+
+        /** {@inheritDoc} */
+        @Override
+        protected String doFormat(int millies, int micros, int nano) {
+            return format_000(millies, micros) + " " + SI_SYMBOL[2];
+        }
+
+        /** {@inheritDoc} */
+        @Override
+        protected String doFormat(int seconds, int millies, int micros, int nano) {
+            return format_000(seconds, millies) + " s";
+        }
+    }
+
+    /** Time formatter equivalent to *nix 'uptime' command. */
+    static class UptimeFormatter extends DurationFormatter {
+        /** serialVersionUID */
+        private static final long serialVersionUID = 3440524099536856811L;
+    }
+}
