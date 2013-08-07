@@ -15,6 +15,8 @@
  */
 package dk.dma.commons.web.rest;
 
+import static java.util.Objects.requireNonNull;
+
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -30,7 +32,18 @@ import dk.dma.commons.util.io.OutputStreamSink;
  */
 public class StreamingUtil {
 
+    /**
+     * Creates a streaming output from the specified iterable and output stream sink.
+     * 
+     * @param i
+     *            the iterable to stream
+     * @param sink
+     *            the sink to stream to
+     * @return
+     */
     public static <T> StreamingOutput createStreamingOutput(final Iterable<T> i, final OutputStreamSink<T> sink) {
+        requireNonNull(i);
+        requireNonNull(sink);
         return new StreamingOutput() {
             @Override
             public void write(OutputStream paramOutputStream) throws IOException {
