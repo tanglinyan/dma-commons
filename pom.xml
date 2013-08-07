@@ -21,7 +21,6 @@
     <module>dma-commons-management</module>
     <module>dma-commons-tracker</module>
     <module>dma-commons-util</module>
-    <module>dma-commons-web</module>
   </modules>
 
   <repositories>
