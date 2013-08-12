@@ -27,6 +27,9 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import dk.dma.commons.util.io.CountingOutputStream;
 import dk.dma.commons.util.io.IoUtil;
 import dk.dma.commons.util.io.PathUtil;
@@ -36,6 +39,7 @@ import dk.dma.commons.util.io.PathUtil;
  * @author Kasper Nielsen
  */
 class RollingOutputStream extends OutputStream {
+    static final Logger LOG = LoggerFactory.getLogger(RollingOutputStream.class);
 
     /** The current output stream we are writing to. */
     private OutputStream current;
@@ -62,6 +66,7 @@ class RollingOutputStream extends OutputStream {
             if (!finalPath.equals(nextPath)) {
                 finalPath = PathUtil.findUnique(finalPath);
                 Files.move(nextPath, finalPath);
+                LOG.info("Renaming " + nextPath + " to " + finalPath);
             }
             current = null;
             nextPath = null;
@@ -114,7 +119,8 @@ class RollingOutputStream extends OutputStream {
 
             Files.createDirectories(nextPath.getParent());
 
-            System.out.println("Using " + nextPath.toAbsolutePath());
+            LOG.info("Opening file " + nextPath + " for backup");
+            // System.out.println("Using " + nextPath.toAbsolutePath());
             // big buffer size is important as we do not want to write to disc to often
             current = new BufferedOutputStream(new CountingOutputStream(new CountingOutputStream(Files.newOutputStream(
                     nextPath, StandardOpenOption.CREATE, StandardOpenOption.APPEND), written), totalWritten),
