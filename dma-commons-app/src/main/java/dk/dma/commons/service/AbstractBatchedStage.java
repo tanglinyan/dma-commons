@@ -35,6 +35,10 @@ public abstract class AbstractBatchedStage<T> extends AbstractMessageProcessorSe
         this.maxBatchSize = maxBatchSize;
     }
 
+    public int getBatchSize() {
+        return maxBatchSize;
+    }
+
     /** {@inheritDoc} */
     @SuppressWarnings("unchecked")
     @Override

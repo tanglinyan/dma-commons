@@ -67,13 +67,21 @@ public final class JSONObject {
         return new JSONObject().addElement(name, value);
     }
 
+    public static JSONObject single(String name, Object value, String name1, Object value1) {
+        return new JSONObject().addElement(name, value).addElement(name1, value1);
+    }
+
+    public static JSONObject single(String name, Object value, String name1, Object value1, String name2, Object value2) {
+        return new JSONObject().addElement(name, value).addElement(name1, value1).addElement(name2, value2);
+    }
+
     public static JSONObject singleList(String name, Object... value) {
         return new JSONObject().addElement(name, Arrays.asList(value));
     }
 
     public static void main(String[] args) {
         singleList("sources", "AisD", "Helcom").toString();
-        System.out.println(singleList("sources", "AisD", "Helcom"));
+        System.out.println(single("sources", "AisD", "23234", 1322));
     }
 
     public String toString() {

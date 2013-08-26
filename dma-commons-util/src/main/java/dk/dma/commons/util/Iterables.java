@@ -18,6 +18,7 @@ package dk.dma.commons.util;
 import static java.util.Objects.requireNonNull;
 
 import java.util.Iterator;
+import java.util.concurrent.atomic.AtomicLong;
 
 import dk.dma.enav.util.function.Predicate;
 
@@ -26,6 +27,17 @@ import dk.dma.enav.util.function.Predicate;
  * @author Kasper Nielsen
  */
 public class Iterables {
+
+    public static <T> Iterable<T> counting(final Iterable<T> iterable, final AtomicLong counter) {
+        requireNonNull(iterable);
+        requireNonNull(counter);
+        return new Iterable<T>() {
+            public Iterator<T> iterator() {
+                return Iterators.counting(iterable.iterator(), counter);
+            }
+        };
+    }
+
     public static <T> Iterable<T> filter(final Iterable<T> unfiltered, final Predicate<? super T> predicate) {
         requireNonNull(unfiltered);
         requireNonNull(predicate);
