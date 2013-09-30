@@ -57,7 +57,7 @@ public class PositionTracker<T> {
      *            the callback
      */
     public void forEachWithinArea(final Area shape, final BiConsumer<T, PositionTime> block) {
-        requireNonNull(shape, "shapeis null");
+        requireNonNull(shape, "shape is null");
         requireNonNull(block, "block is null");
         targets.forEachInParallel(new BiAction<T, PositionTime>() {
             @Override
