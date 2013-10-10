@@ -9,7 +9,7 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -73,7 +73,7 @@ public class Subscription<T> {
      */
     public void forEachTrackedObject(final Consumer<T> consumer) {
         requireNonNull(consumer, "consumer is null");
-        trackedObjects.forEachKeyInParallel(new Action<T>() {
+        trackedObjects.forEachKey(PositionTracker.THRESHOLD, new Action<T>() {
             @Override
             public void apply(T t) {
                 consumer.accept(t);
@@ -89,7 +89,7 @@ public class Subscription<T> {
      */
     public void forEachTrackedObject(final BiConsumer<T, Position> consumer) {
         requireNonNull(consumer, "consumer is null");
-        trackedObjects.forEachInParallel(new BiAction<T, PositionTime>() {
+        trackedObjects.forEach(PositionTracker.THRESHOLD, new BiAction<T, PositionTime>() {
             @Override
             public void apply(T t, PositionTime pt) {
                 // pt.time is from the first time we encountered the position.

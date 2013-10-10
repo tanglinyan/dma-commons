@@ -9,7 +9,7 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -39,6 +39,9 @@ import dk.dma.enav.util.function.BiConsumer;
  */
 public class PositionTracker<T> {
 
+    /** Magic constant. */
+    static final int THRESHOLD = 1;
+
     /** All targets at last update. Must be read via synchronized */
     private ConcurrentHashMapV8<T, PositionTime> latest = new ConcurrentHashMapV8<>();
 
@@ -57,9 +60,9 @@ public class PositionTracker<T> {
      *            the callback
      */
     public void forEachWithinArea(final Area shape, final BiConsumer<T, PositionTime> block) {
-        requireNonNull(shape, "shapeis null");
+        requireNonNull(shape, "shape is null");
         requireNonNull(block, "block is null");
-        targets.forEachInParallel(new BiAction<T, PositionTime>() {
+        targets.forEach(THRESHOLD, new BiAction<T, PositionTime>() {
             @Override
             public void apply(T a, PositionTime b) {
                 if (shape.contains(b)) {
@@ -145,7 +148,7 @@ public class PositionTracker<T> {
 
         // We only want to process those that have been updated since last time
         final ConcurrentHashMapV8<T, PositionTime> updates = new ConcurrentHashMapV8<>();
-        current.forEachInParallel(new BiAction<T, PositionTime>() {
+        current.forEach(THRESHOLD, new BiAction<T, PositionTime>() {
             public void apply(T t, PositionTime pt) {
                 PositionTime p = latest.get(t);
                 if (p == null || !p.positionEquals(pt)) {
@@ -154,7 +157,7 @@ public class PositionTracker<T> {
             }
         });
         // update each subscription with new positions
-        subscriptions.forEachValueInParallel(new Action<Subscription<T>>() {
+        subscriptions.forEachValue(THRESHOLD, new Action<Subscription<T>>() {
             public void apply(final Subscription<T> s) {
                 s.updateWith(updates);
             }
