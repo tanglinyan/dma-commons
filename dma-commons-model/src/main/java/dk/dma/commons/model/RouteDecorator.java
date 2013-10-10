@@ -18,7 +18,6 @@ package dk.dma.commons.model;
 import java.util.ArrayList;
 import java.util.Date;
 
-import dk.dma.commons.util.Converter;
 import dk.dma.enav.model.geometry.Position;
 import dk.dma.enav.model.voyage.Route;
 import dk.dma.enav.model.voyage.RouteLeg.Heading;

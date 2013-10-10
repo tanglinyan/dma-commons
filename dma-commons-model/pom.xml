@@ -31,11 +31,6 @@
 
   <dependencies>
     <dependency>
-      <groupId>dk.dma.commons</groupId>
-      <artifactId>dma-commons-util</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
       <groupId>dk.dma.enav</groupId>
       <artifactId>enav-model</artifactId>
       <version>${project.version}</version>
