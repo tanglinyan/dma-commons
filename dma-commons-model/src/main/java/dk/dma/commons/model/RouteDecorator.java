@@ -201,9 +201,6 @@ public class RouteDecorator {
         public double calcRange() {
             double meters;
             
-            System.out.println("from: "+ from);
-            System.out.println("to: " + to);
-            
             Position pos1 = Position.create(from.getLatitude(), from.getLongitude());
             Position pos2 = Position.create(to.getLatitude(), to.getLongitude());
             
