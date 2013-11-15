@@ -34,6 +34,8 @@ public abstract class AbstractCommandLineTool extends AbstractDmaApplication {
     // We should always have a help
     @Parameter(names = "-help", help = true, description = "prints this help", hidden = true)
     protected boolean help;
+    
+    JCommander jc;
 
     public AbstractCommandLineTool() {
         super();
@@ -72,7 +74,6 @@ public abstract class AbstractCommandLineTool extends AbstractDmaApplication {
             }
         }
 
-        JCommander jc = null;
         try {
             jc = new JCommander(this, args);
         } catch (ParameterException e) {
@@ -87,4 +88,9 @@ public abstract class AbstractCommandLineTool extends AbstractDmaApplication {
             execute();
         }
     }
+    
+    protected void usage() {
+        jc.usage();
+    }
+    
 }
