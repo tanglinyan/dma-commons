@@ -16,6 +16,12 @@
   <packaging>pom</packaging>
   <description>This parent pom for Commons</description>
 
+  <scm>
+    <connection>scm:git:git@github.com:dma-dk/dma-commons.git</connection>
+    <developerConnection>scm:git:git@github.com:dma-dk/dma-commons.git</developerConnection>
+    <url>git@github.com:dma-enav/e-Navigation.git</url>
+  </scm>
+
   <modules>
     <module>dma-commons-app</module>
     <module>dma-commons-management</module>
