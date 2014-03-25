@@ -33,7 +33,7 @@
     <dependency>
       <groupId>dk.dma.enav</groupId>
       <artifactId>enav-model</artifactId>
-      <version>${project.version}</version>
+      <version>0.3</version>
     </dependency>
 <!--    <dependency>
       <groupId>joda-time</groupId>
