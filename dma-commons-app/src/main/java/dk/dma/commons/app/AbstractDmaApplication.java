@@ -105,7 +105,8 @@ public abstract class AbstractDmaApplication {
 
     protected <T extends Service> T start(T service) {
         services.add(requireNonNull(service));
-        service.startAndWait();
+        service.startAsync();
+        service.awaitRunning();
         return service;
     }
 
@@ -127,7 +128,8 @@ public abstract class AbstractDmaApplication {
             // Shutdown in reverse order
             Collections.reverse(services);
             for (Service s : services) {
-                s.stopAndWait();
+                s.stopAsync();
+                s.awaitTerminated();
             }
         }
     }
@@ -139,7 +141,8 @@ public abstract class AbstractDmaApplication {
         Collections.reverse(list);
         for (Service s : list) {
             LOG.info("Trying to shut down " + s.getClass().getName());
-            s.stopAndWait();
+            s.stopAsync();
+            s.awaitTerminated();
             LOG.info("Succeeded in shutting down " + s.getClass().getName());
         }
         LOG.info("All services was succesfully shutdown");
