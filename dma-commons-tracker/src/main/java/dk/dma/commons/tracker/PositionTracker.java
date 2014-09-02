@@ -1,36 +1,34 @@
-/* Copyright (c) 2011 Danish Maritime Authority
+/* Copyright (c) 2011 Danish Maritime Authority.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 3 of the License, or (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * Lesser General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this library.  If not, see <http://www.gnu.org/licenses/>.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package dk.dma.commons.tracker;
 
 import static java.util.Objects.requireNonNull;
 
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
+import java.util.function.Consumer;
 
-import jsr166e.ConcurrentHashMapV8;
-import jsr166e.ConcurrentHashMapV8.Action;
-import jsr166e.ConcurrentHashMapV8.BiAction;
-import jsr166e.ConcurrentHashMapV8.BiFun;
 import dk.dma.commons.management.ManagedAttribute;
 import dk.dma.enav.model.geometry.Area;
 import dk.dma.enav.model.geometry.Circle;
 import dk.dma.enav.model.geometry.PositionTime;
-import dk.dma.enav.util.function.BiConsumer;
 
 /**
  * An object that tracks positions.
@@ -43,13 +41,13 @@ public class PositionTracker<T> {
     static final int THRESHOLD = 1;
 
     /** All targets at last update. Must be read via synchronized */
-    private ConcurrentHashMapV8<T, PositionTime> latest = new ConcurrentHashMapV8<>();
+    private ConcurrentHashMap<T, PositionTime> latest = new ConcurrentHashMap<>();
 
     /** All current subscriptions. */
-    final ConcurrentHashMapV8<PositionUpdatedHandler<? super T>, Subscription<T>> subscriptions = new ConcurrentHashMapV8<>();
+    final ConcurrentHashMap<PositionUpdatedHandler<? super T>, Subscription<T>> subscriptions = new ConcurrentHashMap<>();
 
     /** All targets that we are currently monitoring. */
-    private final ConcurrentHashMapV8<T, PositionTime> targets = new ConcurrentHashMapV8<>();
+    private final ConcurrentHashMap<T, PositionTime> targets = new ConcurrentHashMap<>();
 
     /**
      * Invokes the callback for every tracked object within the specified area of interest.
@@ -62,9 +60,9 @@ public class PositionTracker<T> {
     public void forEachWithinArea(final Area shape, final BiConsumer<T, PositionTime> block) {
         requireNonNull(shape, "shape is null");
         requireNonNull(block, "block is null");
-        targets.forEach(THRESHOLD, new BiAction<T, PositionTime>() {
+        targets.forEach(THRESHOLD, new BiConsumer<T, PositionTime>() {
             @Override
-            public void apply(T a, PositionTime b) {
+            public void accept(T a, PositionTime b) {
                 if (shape.contains(b)) {
                     block.accept(a, b);
                 }
@@ -118,7 +116,7 @@ public class PositionTracker<T> {
      * @return a map of all tracked objects within the area as keys and their latest position as the value
      */
     public Map<T, PositionTime> getTargetsWithin(final Area shape) {
-        final ConcurrentHashMapV8<T, PositionTime> result = new ConcurrentHashMapV8<>();
+        final ConcurrentHashMap<T, PositionTime> result = new ConcurrentHashMap<>();
         forEachWithinArea(shape, new BiConsumer<T, PositionTime>() {
             public void accept(T a, PositionTime b) {
                 if (shape.contains(b)) {
@@ -143,13 +141,13 @@ public class PositionTracker<T> {
 
     /** Should be scheduled to run every x second to update handlers. */
     synchronized void doRun() {
-        ConcurrentHashMapV8<T, PositionTime> current = new ConcurrentHashMapV8<>(targets);
+        ConcurrentHashMap<T, PositionTime> current = new ConcurrentHashMap<>(targets);
         final Map<T, PositionTime> latest = this.latest;
 
         // We only want to process those that have been updated since last time
-        final ConcurrentHashMapV8<T, PositionTime> updates = new ConcurrentHashMapV8<>();
-        current.forEach(THRESHOLD, new BiAction<T, PositionTime>() {
-            public void apply(T t, PositionTime pt) {
+        final ConcurrentHashMap<T, PositionTime> updates = new ConcurrentHashMap<>();
+        current.forEach(THRESHOLD, new BiConsumer<T, PositionTime>() {
+            public void accept(T t, PositionTime pt) {
                 PositionTime p = latest.get(t);
                 if (p == null || !p.positionEquals(pt)) {
                     updates.put(t, pt);
@@ -157,8 +155,8 @@ public class PositionTracker<T> {
             }
         });
         // update each subscription with new positions
-        subscriptions.forEachValue(THRESHOLD, new Action<Subscription<T>>() {
-            public void apply(final Subscription<T> s) {
+        subscriptions.forEachValue(THRESHOLD, new Consumer<Subscription<T>>() {
+            public void accept(final Subscription<T> s) {
                 s.updateWith(updates);
             }
         });
@@ -222,7 +220,7 @@ public class PositionTracker<T> {
     public void update(T target, PositionTime positionTime) {
         requireNonNull(positionTime, "positionTime is null"); // target gets checked in merge
         // make sure we keep the positiontime with the highest timestamp
-        targets.merge(target, positionTime, new BiFun<PositionTime, PositionTime, PositionTime>() {
+        targets.merge(target, positionTime, new BiFunction<PositionTime, PositionTime, PositionTime>() {
             public PositionTime apply(PositionTime a, PositionTime b) {
                 return a.getTime() >= b.getTime() ? a : b;
             }

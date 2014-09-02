@@ -1,17 +1,16 @@
-/* Copyright (c) 2011 Danish Maritime Authority
+/* Copyright (c) 2011 Danish Maritime Authority.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 3 of the License, or (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * Lesser General Public License for more details.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU General Public License
- * along with this library.  If not, see <http://www.gnu.org/licenses/>.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package dk.dma.commons.tracker;
 
@@ -19,15 +18,13 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
-import jsr166e.ConcurrentHashMapV8;
-import jsr166e.ConcurrentHashMapV8.Action;
-import jsr166e.ConcurrentHashMapV8.BiAction;
 import dk.dma.enav.model.geometry.Area;
 import dk.dma.enav.model.geometry.Position;
 import dk.dma.enav.model.geometry.PositionTime;
-import dk.dma.enav.util.function.BiConsumer;
-import dk.dma.enav.util.function.Consumer;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 /**
  * A subscription is created for each {@link PositionUpdatedHandler}. It is to use unsubscribe ({@link #cancel()}).
@@ -46,7 +43,7 @@ public class Subscription<T> {
     private final Area shapeExiting;
 
     /** A map of currently tracked objects for this subscription. */
-    private final ConcurrentHashMapV8<T, PositionTime> trackedObjects = new ConcurrentHashMapV8<>();
+    private final ConcurrentHashMap<T, PositionTime> trackedObjects = new ConcurrentHashMap<>();
 
     /** The tracker that this subscription is registered with. */
     private final PositionTracker<T> tracker;
@@ -73,12 +70,7 @@ public class Subscription<T> {
      */
     public void forEachTrackedObject(final Consumer<T> consumer) {
         requireNonNull(consumer, "consumer is null");
-        trackedObjects.forEachKey(PositionTracker.THRESHOLD, new Action<T>() {
-            @Override
-            public void apply(T t) {
-                consumer.accept(t);
-            }
-        });
+        trackedObjects.forEachKey(PositionTracker.THRESHOLD, consumer);
     }
 
     /**
@@ -89,9 +81,9 @@ public class Subscription<T> {
      */
     public void forEachTrackedObject(final BiConsumer<T, Position> consumer) {
         requireNonNull(consumer, "consumer is null");
-        trackedObjects.forEach(PositionTracker.THRESHOLD, new BiAction<T, PositionTime>() {
+        trackedObjects.forEach(PositionTracker.THRESHOLD, new BiConsumer<T, PositionTime>() {
             @Override
-            public void apply(T t, PositionTime pt) {
+            public void accept(T t, PositionTime pt) {
                 // pt.time is from the first time we encountered the position.
                 // We might have gotten messages with the position but different timestamps
                 // To avoid confusion we do not export the timestamp out
@@ -132,7 +124,7 @@ public class Subscription<T> {
      * @param updates
      *            the position that have been updated since this method was last invoked
      */
-    synchronized void updateWith(ConcurrentHashMapV8<T, PositionTime> updates) {
+    synchronized void updateWith(ConcurrentHashMap<T, PositionTime> updates) {
         for (Map.Entry<T, PositionTime> e : updates.entrySet()) {
             T t = e.getKey();
             PositionTime pt = e.getValue();

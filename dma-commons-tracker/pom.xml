@@ -9,17 +9,11 @@
   </parent>
 
   <artifactId>dma-commons-tracker</artifactId>
-  <version>0.3-SNAPSHOT</version>
   <name>DMA Commons Tracker</name>
   <description>The DMA Tracker</description>
 
   <dependencies>
 
-    <dependency>
-      <groupId>dk.dma.3rdparty</groupId>
-      <artifactId>jsr166e</artifactId>
-      <version>${dependencies.jsr166e.version}</version>
-    </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>dma-commons-app</artifactId>

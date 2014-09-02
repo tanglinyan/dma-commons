@@ -9,7 +9,6 @@
   </parent>
 
   <artifactId>dma-commons-app</artifactId>
-  <version>0.3-SNAPSHOT</version>
   <name>DMA Commons App</name>
   <description>The DMA Commons App framework</description>
 
