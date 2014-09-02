@@ -20,17 +20,17 @@ import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Predicate;
 
 import dk.dma.commons.management.ManagedAttribute;
 import dk.dma.commons.management.ManagedOperation;
-import dk.dma.enav.util.function.Predicate;
 
 /**
  * A non-blocking down sampling filter.
  * 
  * @author Kasper Nielsen
  */
-public class DownSamplingFilter<T> extends Predicate<T> {
+public class DownSamplingFilter<T> implements Predicate<T> {
 
     /** The number of elements accepted by this filter. */
     final AtomicLong accepted = new AtomicLong();

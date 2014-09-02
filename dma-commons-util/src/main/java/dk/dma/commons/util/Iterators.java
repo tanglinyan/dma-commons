@@ -21,10 +21,9 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.PriorityQueue;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Predicate;
 
 import com.google.common.collect.AbstractIterator;
-
-import dk.dma.enav.util.function.Predicate;
 
 /**
  * 

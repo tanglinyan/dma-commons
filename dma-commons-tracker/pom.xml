@@ -22,7 +22,7 @@
     <dependency>
       <groupId>dk.dma.enav</groupId>
       <artifactId>enav-model</artifactId>
-      <version>0.3</version>
+      <version>${dependencies.enav.version}</version>
     </dependency>
   </dependencies>
 

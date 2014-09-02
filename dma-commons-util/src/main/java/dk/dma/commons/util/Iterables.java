@@ -18,8 +18,7 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicLong;
-
-import dk.dma.enav.util.function.Predicate;
+import java.util.function.Predicate;
 
 /**
  * 

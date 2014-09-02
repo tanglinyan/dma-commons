@@ -30,6 +30,10 @@
     <module>dma-commons-model</module>
   </modules>
 
+  <properties>
+    <dependencies.enav.version>0.5-SNAPSHOT</dependencies.enav.version>
+  </properties>
+
   <repositories>
     <repository>
       <id>dma-releases</id>

@@ -120,7 +120,7 @@ import sun.misc.Unsafe;
  *            the type of mapped values
  */
 // CHECKSTYLE:OFF
-@SuppressWarnings({ "rawtypes", "unchecked", "unused", "serial" })
+@SuppressWarnings({ "rawtypes", "unchecked", "unused", "serial", "restriction" })
 public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V>, Serializable {
     /**
      * An Equivalence object performing {@link Object#equals} based comparisons and using {@link Object#hashCode}

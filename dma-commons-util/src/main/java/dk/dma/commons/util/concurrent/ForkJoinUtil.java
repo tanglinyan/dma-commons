@@ -17,10 +17,9 @@ package dk.dma.commons.util.concurrent;
 import static java.util.Objects.requireNonNull;
 
 import java.util.concurrent.CountedCompleter;
+import java.util.function.Consumer;
 
-import dk.dma.enav.util.function.Consumer;
 import dk.dma.enav.util.function.EConsumer;
-
 
 /**
  * 
