@@ -10,7 +10,7 @@
 
   <groupId>dk.dma.commons</groupId>
   <artifactId>dma-commons-parent</artifactId>
-  <version>0.2-SNAPSHOT</version>
+  <version>0.2</version>
   <name>DMA Commons Parent</name>
   <packaging>pom</packaging>
   <description>This parent pom for Commons</description>
@@ -19,6 +19,7 @@
     <connection>scm:git:git@github.com:dma-dk/dma-commons.git</connection>
     <developerConnection>scm:git:git@github.com:dma-dk/dma-commons.git</developerConnection>
     <url>git@github.com:dma-enav/e-Navigation.git</url>
+    <tag>v0.2</tag>
   </scm>
 
   <modules>
