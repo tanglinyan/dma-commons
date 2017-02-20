@@ -179,7 +179,7 @@ public abstract class AbstractDmaApplication {
                 public void failed(State from, Throwable failure) {
                     c.countDown();
                 }
-            }, MoreExecutors.sameThreadExecutor());
+            }, MoreExecutors.newDirectExecutorService());
         }
     }
 

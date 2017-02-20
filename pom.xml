@@ -5,12 +5,12 @@
   <parent>
     <groupId>dk.dma</groupId>
     <artifactId>dma-root-pom</artifactId>
-    <version>22</version>
+    <version>24</version>
   </parent>
 
   <groupId>dk.dma.commons</groupId>
   <artifactId>dma-commons-parent</artifactId>
-  <version>0.4-SNAPSHOT</version>
+  <version>0.5-SNAPSHOT</version>
   <name>DMA Commons Parent</name>
   <packaging>pom</packaging>
   <description>This parent pom for Commons</description>
