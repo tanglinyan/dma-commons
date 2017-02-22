@@ -14,14 +14,6 @@
  */
 package dk.dma.commons.management;
 
-import static java.util.Objects.requireNonNull;
-
-import java.beans.BeanInfo;
-import java.beans.Introspector;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Map;
-
 import javax.management.Attribute;
 import javax.management.AttributeList;
 import javax.management.AttributeNotFoundException;
@@ -31,6 +23,13 @@ import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanInfo;
 import javax.management.MBeanOperationInfo;
 import javax.management.ReflectionException;
+import java.beans.BeanInfo;
+import java.beans.Introspector;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Map;
+
+import static java.util.Objects.requireNonNull;
 
 /**
  * The DynamicMBean that is used to expose this group.
@@ -63,7 +62,7 @@ class DefaultMBean implements DynamicMBean {
      * @param ops
      *            a Map of all operations
      */
-    public DefaultMBean(String name, String description, Map<String, DefaultManagedAttribute> attributes,
+    DefaultMBean(String name, String description, Map<String, DefaultManagedAttribute> attributes,
             Map<OperationKey, DefaultManagedOperation> ops) {
         this.name = requireNonNull(name, "name is null");
         this.description = requireNonNull(description, "description is null");
