@@ -20,6 +20,8 @@
  */
 package dk.dma.commons.util.concurrent;
 
+import sun.misc.Unsafe;
+
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.ref.Reference;
@@ -37,8 +39,6 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.ReentrantLock;
-
-import sun.misc.Unsafe;
 
 /**
  * A {@link java.util.ConcurrentMap} supporting user-defined equivalence comparisons, soft, weak, or strong keys and
@@ -1672,6 +1672,11 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
                 h += cchm.keyEquivalence.hash(i.next());
             }
             return h;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            throw new UnsupportedOperationException();
         }
 
         /**

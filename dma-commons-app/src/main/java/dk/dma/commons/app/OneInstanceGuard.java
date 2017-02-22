@@ -14,15 +14,15 @@
  */
 package dk.dma.commons.app;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Class for checking if other instances are running.
@@ -87,7 +87,7 @@ public class OneInstanceGuard {
 
         private OneInstanceGuard guard;
 
-        public ShutdownHook(OneInstanceGuard guard) {
+        ShutdownHook(OneInstanceGuard guard) {
             setDaemon(true);
             this.guard = guard;
         }
