@@ -59,6 +59,6 @@ public class DateTimeUtil {
     }
 
     /** Convert no. of millis since epoch to LocalDateTime for Zone UTC */
-    public final static Function<Long, LocalDateTime> MILLIS_TO_LOCALDATETIME_UTC = epochMillis -> LocalDateTime.ofInstant(Instant.ofEpochMilli(epochMillis), ZoneOffset.UTC);
+    public static final Function<Long, LocalDateTime> MILLIS_TO_LOCALDATETIME_UTC = epochMillis -> LocalDateTime.ofInstant(Instant.ofEpochMilli(epochMillis), ZoneOffset.UTC);
 
 }
