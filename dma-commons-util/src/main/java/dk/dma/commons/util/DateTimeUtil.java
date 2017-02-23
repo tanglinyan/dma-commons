@@ -61,4 +61,7 @@ public class DateTimeUtil {
     /** Convert no. of millis since epoch to LocalDateTime for Zone UTC */
     public static final Function<Long, LocalDateTime> MILLIS_TO_LOCALDATETIME_UTC = epochMillis -> LocalDateTime.ofInstant(Instant.ofEpochMilli(epochMillis), ZoneOffset.UTC);
 
+    /** Convert LocalDateTime for Zone UTC to no. of millis since epoch */
+    public static final Function<LocalDateTime, Long> LOCALDATETIME_UTC_TO_MILLIS = t -> t == null ? Long.MIN_VALUE : t.toInstant(ZoneOffset.UTC).toEpochMilli();
+
 }
