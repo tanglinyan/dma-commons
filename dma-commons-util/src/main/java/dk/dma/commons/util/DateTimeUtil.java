@@ -14,12 +14,16 @@
  */
 package dk.dma.commons.util;
 
+import org.joda.time.DateTime;
+import org.joda.time.Interval;
+
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
-
-import org.joda.time.DateTime;
-import org.joda.time.Interval;
+import java.util.function.Function;
 
 /**
  * 
@@ -53,4 +57,8 @@ public class DateTimeUtil {
         Date now = new Date();
         return toInterval(substract(now, timeback, unit), now);
     }
+
+    /** Convert no. of millis since epoch to LocalDateTime for Zone UTC */
+    public final static Function<Long, LocalDateTime> MILLIS_TO_LOCALDATETIME_UTC = epochMillis -> LocalDateTime.ofInstant(Instant.ofEpochMilli(epochMillis), ZoneOffset.UTC);
+
 }
