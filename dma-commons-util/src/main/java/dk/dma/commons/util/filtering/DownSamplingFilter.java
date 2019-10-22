@@ -27,28 +27,45 @@ import dk.dma.commons.management.ManagedOperation;
 
 /**
  * A non-blocking down sampling filter.
- * 
+ *
+ * @param <T> the type parameter
  * @author Kasper Nielsen
  */
 public class DownSamplingFilter<T> implements Predicate<T> {
 
-    /** The number of elements accepted by this filter. */
+    /**
+     * The number of elements accepted by this filter.
+     */
     final AtomicLong accepted = new AtomicLong();
 
-    /** The cache of encountered events. */
+    /**
+     * The cache of encountered events.
+     */
     final ConcurrentHashMap<T, Long> cache = new ConcurrentHashMap<>();
 
-    /** The number of elements rejected by this filter. */
+    /**
+     * The number of elements rejected by this filter.
+     */
     final AtomicLong rejected = new AtomicLong();
 
-    /** The sampling rate. */
+    /**
+     * The sampling rate.
+     */
     volatile long samplingRateNanos;
 
-    /** Creates a new down sampling filter with a sampling rate of 1 minute. */
+    /**
+     * Creates a new down sampling filter with a sampling rate of 1 minute.
+     */
     public DownSamplingFilter() {
         this(1, TimeUnit.MINUTES);
     }
 
+    /**
+     * Instantiates a new Down sampling filter.
+     *
+     * @param rate the rate
+     * @param unit the unit
+     */
     public DownSamplingFilter(long rate, TimeUnit unit) {
         setSamplingRate(rate, unit);
         // Add a cleaning thread, just in case we have non recurring targets
@@ -66,36 +83,71 @@ public class DownSamplingFilter<T> implements Predicate<T> {
         });
     }
 
-    /** Clears all internal data in the filter. */
+    /**
+     * Clears all internal data in the filter.
+     */
     @ManagedOperation
     public void clear() {
         cache.clear();
     }
 
+    /**
+     * Gets acceptance count.
+     *
+     * @return the acceptance count
+     */
     @ManagedAttribute
     public long getAcceptanceCount() {
         return accepted.get();
     }
 
+    /**
+     * Gets cache size.
+     *
+     * @return the cache size
+     */
     @ManagedAttribute
     public int getCacheSize() {
         return cache.size();
     }
 
+    /**
+     * Gets total count.
+     *
+     * @return the total count
+     */
     @ManagedAttribute
     public long getTotalCount() {
         return getAcceptanceCount() + getRejectionCount();
     }
 
+    /**
+     * Gets rejection count.
+     *
+     * @return the rejection count
+     */
     @ManagedAttribute
     public long getRejectionCount() {
         return rejected.get();
     }
 
+    /**
+     * Gets sampling rate.
+     *
+     * @param unit the unit
+     * @return the sampling rate
+     */
     public long getSamplingRate(TimeUnit unit) {
         return unit.convert(samplingRateNanos, TimeUnit.NANOSECONDS);
     }
 
+    /**
+     * Sets sampling rate.
+     *
+     * @param rate the rate
+     * @param unit the unit
+     * @return the sampling rate
+     */
     public DownSamplingFilter<T> setSamplingRate(long rate, TimeUnit unit) {
         if (rate < 0) {
             throw new IllegalArgumentException("Sampling rate must be non-negative, was " + rate);

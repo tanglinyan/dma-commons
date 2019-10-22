@@ -26,11 +26,20 @@ import java.util.function.Predicate;
 import com.google.common.collect.AbstractIterator;
 
 /**
- * 
+ * The type Iterators.
+ *
  * @author Kasper Nielsen
  */
 public class Iterators {
 
+    /**
+     * Counting iterator.
+     *
+     * @param <T>      the type parameter
+     * @param iterator the iterator
+     * @param counter  the counter
+     * @return the iterator
+     */
     public static <T> Iterator<T> counting(final Iterator<T> iterator, final AtomicLong counter) {
         requireNonNull(iterator);
         requireNonNull(counter);
@@ -56,6 +65,11 @@ public class Iterators {
 
     /**
      * Returns the elements of {@code unfiltered} that satisfy a predicate.
+     *
+     * @param <T>        the type parameter
+     * @param unfiltered the unfiltered
+     * @param predicate  the predicate
+     * @return the iterator
      */
     public static <T> Iterator<T> filter(final Iterator<T> unfiltered, final Predicate<? super T> predicate) {
         requireNonNull(unfiltered);
@@ -74,6 +88,14 @@ public class Iterators {
         };
     }
 
+    /**
+     * Combine iterator.
+     *
+     * @param <T>        the type parameter
+     * @param iterators  the iterators
+     * @param comparator the comparator
+     * @return the iterator
+     */
     public static <T> Iterator<T> combine(Collection<? extends Iterator<T>> iterators, final Comparator<T> comparator) {
         if (iterators.size() == 1) {
             return iterators.iterator().next();
@@ -103,11 +125,31 @@ public class Iterators {
 
     }
 
+    /**
+     * The type Entry.
+     *
+     * @param <T> the type parameter
+     */
     static class Entry<T> implements Comparable<Entry<T>> {
+        /**
+         * The Next.
+         */
         T next;
+        /**
+         * The Iterator.
+         */
         final Iterator<T> iterator;
+        /**
+         * The Comparator.
+         */
         final Comparator<T> comparator;
 
+        /**
+         * Instantiates a new Entry.
+         *
+         * @param i          the
+         * @param comparator the comparator
+         */
         Entry(Iterator<T> i, Comparator<T> comparator) {
             this.iterator = requireNonNull(i);
             this.comparator = comparator;

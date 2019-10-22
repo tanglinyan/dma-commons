@@ -44,23 +44,23 @@ import java.util.concurrent.locks.ReentrantLock;
  * A {@link java.util.ConcurrentMap} supporting user-defined equivalence comparisons, soft, weak, or strong keys and
  * values, and user-supplied computational methods for setting and updating values. In particular:
  * <ul>
- * 
+ *
  * <li>Identity-based, Equality-based or User-definable {@link Equivalence}-based comparisons controlling membership.
- * 
+ *
  * <li> {@linkplain SoftReference Soft}, {@linkplain WeakReference weak} or strong (regular) keys and values.
- * 
+ *
  * <li>User-definable {@code MappingFunctions} that may be used in method
  * {@link CustomConcurrentHashMap#computeIfAbsent} to atomically establish a computed value, along with
  * {@code RemappingFunctions} that can be used in method {@link CustomConcurrentHashMap#compute} to atomically replace
  * values.
- * 
+ *
  * <li>Factory methods returning specialized forms for {@code int} keys and/or values, that may be more space-efficient
- * 
+ *
  * </ul>
- * 
+ * <p>
  * Per-map settings are established in constructors, as in the following usages (that assume static imports to simplify
  * expression of configuration parameters):
- * 
+ *
  * <pre>
  * {@code
  * identityMap = new CustomConcurrentHashMap<Person,Salary>
@@ -79,18 +79,18 @@ import java.util.concurrent.locks.ReentrantLock;
  *          }
  *        },
  *      STRONG, EQUALS, 0);
- * }
+ * }**
  * </pre>
- * 
+ * <p>
  * The first usage above provides a replacement for {@link java.util.IdentityHashMap}, and the second a replacement for
  * {@link java.util.WeakHashMap}, adding concurrency, asynchronous cleanup, and identity-based equality for keys. The
  * third usage illustrates a map with a custom Equivalence that looks only at the name field of a (fictional) Person
  * class.
- * 
+ *
  * <p>
  * This class also includes nested class {@link KeySet} that provides space-efficient Set views of maps, also supporting
  * method {@code intern}, which may be of use in canonicalizing elements.
- * 
+ *
  * <p>
  * When used with (Weak or Soft) Reference keys and/or values, elements that have asynchronously become {@code null} are
  * treated as absent from the map and (eventually) removed from maps via a background thread common across all maps.
@@ -98,7 +98,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * guarantees than you might expect even in the absence of other explicitly concurrent operations. For example
  * {@code containsValue(value)} may return true even if {@code value} is no longer available upon return from the
  * method.
- * 
+ *
  * <p>
  * When Equivalences other than equality are used, the returned collections may violate the specifications of
  * {@code Map} and/or {@code Set} interfaces, which mandate the use of the {@code equals} method when comparing objects.
@@ -109,15 +109,13 @@ import java.util.concurrent.locks.ReentrantLock;
  * results. This class supports all optional operations of the {@code ConcurrentMap} interface. It supports have
  * <i>weakly consistent iteration</i>: an iterator over one of the map's view collections may reflect some, all or none
  * of the changes made to the collection after the iterator was created.
- * 
+ *
  * <p>
  * This class is a member of the <a href="{@docRoot}/../technotes/guides/collections/index.html"> Java Collections
  * Framework</a>.
- * 
- * @param <K>
- *            the type of keys maintained by this map
- * @param <V>
- *            the type of mapped values
+ *
+ * @param <K> the type of keys maintained by this map
+ * @param <V> the type of mapped values
  */
 // CHECKSTYLE:OFF
 @SuppressWarnings({ "rawtypes", "unchecked", "unused", "serial", "restriction" })
@@ -149,24 +147,51 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
     /** Config string for int maps */
     private static final String INT_STRING = "Int";
 
+    /**
+     * The Segment bits.
+     */
     static final int SEGMENT_BITS = 6;
 
+    /**
+     * The Nsegments.
+     */
     static final int NSEGMENTS = 1 << SEGMENT_BITS;
 
     // builtin equivalences
 
+    /**
+     * The Segment mask.
+     */
     static final int SEGMENT_MASK = NSEGMENTS - 1;
 
+    /**
+     * The Segment shift.
+     */
     static final int SEGMENT_SHIFT = 32 - SEGMENT_BITS;
 
+    /**
+     * The Max segment capacity.
+     */
     static final int MAX_SEGMENT_CAPACITY = 1 << 32 - SEGMENT_BITS;
 
+    /**
+     * The Min segment capacity.
+     */
     static final int MIN_SEGMENT_CAPACITY = 4;
 
+    /**
+     * The Ref queue.
+     */
     static volatile ReferenceQueue<Object> refQueue;
 
+    /**
+     * The Segment base.
+     */
     static final long SEGMENT_BASE;
 
+    /**
+     * The Segments shift.
+     */
     static final int SEGMENTS_SHIFT;
 
     /** Config string for self-map (Set view) refs */
@@ -174,20 +199,35 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
 
     private static final long serialVersionUID = 7249069246764182397L;
 
-    /** The strength of soft references */
+    /**
+     * The strength of soft references
+     */
     public static final Strength SOFT = Strength.soft;
 
-    /** The strength of ordinary references */
+    /**
+     * The strength of ordinary references
+     */
     public static final Strength STRONG = Strength.strong;
 
+    /**
+     * The Table base.
+     */
     static final long TABLE_BASE;
 
+    /**
+     * The Table shift.
+     */
     static final int TABLE_SHIFT;
 
     // Hardwire 64 segments
 
+    /**
+     * The Unsafe.
+     */
     static final Unsafe UNSAFE;
-    /** The strength of weak references */
+    /**
+     * The strength of weak references
+     */
     public static final Strength WEAK = Strength.weak;
     static {
         try {
@@ -208,6 +248,10 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
             throw new RuntimeException("Could not initialize intrinsics", e);
         }
     }
+
+    /**
+     * The Entry set.
+     */
     transient Set<Map.Entry<K, V>> entrySet;
     /**
      * The factory for this map
@@ -223,7 +267,10 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
      */
     final Equivalence<? super K> keyEquivalence;
 
-    // Cached view objects
+    /**
+     * The Key set.
+     */
+// Cached view objects
     transient Set<K> keySet;
 
     /**
@@ -236,6 +283,9 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
      */
     final Equivalence<? super V> valueEquivalence;
 
+    /**
+     * The Values.
+     */
     transient Collection<V> values;
 
     /**
@@ -247,18 +297,12 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
 
     /**
      * Creates a new CustomConcurrentHashMap with the given parameters.
-     * 
-     * @param keyStrength
-     *            the strength for keys
-     * @param keyEquivalence
-     *            the Equivalence to use for keys
-     * @param valueStrength
-     *            the strength for values
-     * @param valueEquivalence
-     *            the Equivalence to use for values
-     * @param expectedSize
-     *            an estimate of the number of elements that will be held in the map. If no estimate is known, zero is
-     *            an acceptable value.
+     *
+     * @param keyStrength      the strength for keys
+     * @param keyEquivalence   the Equivalence to use for keys
+     * @param valueStrength    the strength for values
+     * @param valueEquivalence the Equivalence to use for values
+     * @param expectedSize     an estimate of the number of elements that will be held in the map. If no estimate is known, zero is            an acceptable value.
      */
     public CustomConcurrentHashMap(Strength keyStrength, Equivalence<? super K> keyEquivalence, Strength valueStrength,
             Equivalence<? super V> valueEquivalence, int expectedSize) {
@@ -267,6 +311,12 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
 
     /**
      * Internal constructor to set factory, equivalences and segment capacities, and to create segments array.
+     *
+     * @param ks           the ks
+     * @param keq          the keq
+     * @param vs           the vs
+     * @param veq          the veq
+     * @param expectedSize the expected size
      */
     CustomConcurrentHashMap(String ks, Equivalence<? super K> keq, String vs, Equivalence<? super V> veq,
             int expectedSize) {
@@ -322,7 +372,7 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
 
     /**
      * Updates the mapping for the given key with the result of the given remappingFunction. This is equivalent to
-     * 
+     *
      * <pre>
      *   value = remappingFunction.remap(key, get(key));
      *   if (value != null)
@@ -330,13 +380,13 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
      *   else
      *     return remove(key);
      * </pre>
-     * 
+     * <p>
      * except that the action is performed atomically. Some attempted operations on this map by other threads may be
      * blocked while computation is in progress.
-     * 
+     *
      * <p>
      * Sample Usage. A remapping function can be used to perform frequency counting of words using code such as:
-     * 
+     *
      * <pre>
      * map.compute(word, new RemappingFunction&lt;String, Integer&gt;() {
      *     public Integer remap(String k, Integer v) {
@@ -344,17 +394,13 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
      *     }
      * });
      * </pre>
-     * 
-     * @SuppressWarnings("unchecked")
-     * @param key
-     *            key with which the specified value is to be associated
-     * @param remappingFunction
-     *            the function to compute a value
+     *
+     * @param key               key with which the specified value is to be associated
+     * @param remappingFunction the function to compute a value
      * @return the updated value or {@code null} if the computation returned {@code null}
-     * @throws NullPointerException
-     *             if the specified key or remappingFunction is null
-     * @throws RuntimeException
-     *             or Error if the remappingFunction does so, in which case the mapping is left in its previous state
+     * @throws NullPointerException if the specified key or remappingFunction is null
+     * @throws RuntimeException     or Error if the remappingFunction does so, in which case the mapping is left in its previous state
+     * @SuppressWarnings("unchecked")
      */
     public V compute(K key, RemappingFunction<? super K, V> remappingFunction) {
         if (key == null || remappingFunction == null) {
@@ -407,7 +453,7 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
     /**
      * If the specified key is not already associated with a value, computes its value using the given mappingFunction,
      * and if non-null, enters it into the map. This is equivalent to
-     * 
+     *
      * <pre>
      * if (map.containsKey(key))
      *     return map.get(key);
@@ -417,22 +463,17 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
      * else
      *     return null;
      * </pre>
-     * 
+     * <p>
      * except that the action is performed atomically. Some attempted operations on this map by other threads may be
      * blocked while computation is in progress. Because this function is invoked within atomicity control, the
      * computation should be short and simple. The most common usage is to construct a new object serving as an initial
      * mapped value, or memoized result.
-     * 
-     * @param key
-     *            key with which the specified value is to be associated
-     * @param mappingFunction
-     *            the function to compute a value
-     * @return the current (existing or computed) value associated with the specified key, or {@code null} if the
-     *         computation returned {@code null}
-     * @throws NullPointerException
-     *             if the specified key or mappingFunction is null
-     * @throws RuntimeException
-     *             or Error if the mappingFunction does so, in which case the mapping is left unestablished
+     *
+     * @param key             key with which the specified value is to be associated
+     * @param mappingFunction the function to compute a value
+     * @return the current (existing or computed) value associated with the specified key, or {@code null} if the         computation returned {@code null}
+     * @throws NullPointerException if the specified key or mappingFunction is null
+     * @throws RuntimeException     or Error if the mappingFunction does so, in which case the mapping is left unestablished
      */
     public V computeIfAbsent(K key, MappingFunction<? super K, ? extends V> mappingFunction) {
         if (key == null || mappingFunction == null) {
@@ -531,6 +572,11 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
 
     /**
      * Shared implementation for put, putIfAbsent
+     *
+     * @param key        the key
+     * @param value      the value
+     * @param onlyIfNull the only if null
+     * @return the v
      */
     final V doPut(K key, V value, boolean onlyIfNull) {
         if (key == null || value == null) {
@@ -627,6 +673,11 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
 
     /**
      * Returns node for key, or null if none.
+     *
+     * @param key  the key
+     * @param hash the hash
+     * @param seg  the seg
+     * @return the node
      */
     final Node findNode(Object key, int hash, Segment seg) {
         if (seg != null) {
@@ -671,9 +722,8 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
     /**
      * Returns the segment for possibly inserting into the table associated with given hash, constructing it if
      * necessary.
-     * 
-     * @param hash
-     *            the hash code for the key
+     *
+     * @param hash the hash code for the key
      * @return the segment
      */
     final Segment getSegmentForAdd(int hash) {
@@ -696,9 +746,8 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
 
     /**
      * Returns the segment for traversing table for key with given hash.
-     * 
-     * @param hash
-     *            the hash code for the key
+     *
+     * @param hash the hash code for the key
      * @return the segment, or null if not yet initialized
      */
     final Segment getSegmentForTraversal(int hash) {
@@ -736,6 +785,11 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         return true;
     }
 
+    /**
+     * Key iterator key iterator.
+     *
+     * @return the key iterator
+     */
     final KeyIterator keyIterator() { // needed by Set
         return new KeyIterator();
     }
@@ -915,6 +969,8 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
 
     /**
      * Removes node if its key or value are null.
+     *
+     * @param r the r
      */
     final void removeIfReclaimed(Node r) {
         int hash = r.getLocator();
@@ -1066,7 +1122,7 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
     /**
      * Returns a queue that may be used as the ReferenceQueue argument to {@link java.lang.ref.Reference} constructors
      * to arrange removal of reclaimed nodes from maps via a background thread.
-     * 
+     *
      * @return the reference queue associated with the background cleanup thread
      */
     static ReferenceQueue<Object> getReclamationQueue() {
@@ -1110,10 +1166,8 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
 
     /**
      * Returns a new map using Integer keys and values.
-     * 
-     * @param expectedSize
-     *            an estimate of the number of elements that will be held in the map. If no estimate is known, zero is
-     *            an acceptable value.
+     *
+     * @param expectedSize an estimate of the number of elements that will be held in the map. If no estimate is known, zero is            an acceptable value.
      * @return the map
      */
     public static CustomConcurrentHashMap<Integer, Integer> newIntKeyIntValueMap(int expectedSize) {
@@ -1122,14 +1176,11 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
 
     /**
      * Returns a new map using Integer keys and the given value parameters.
-     * 
-     * @param valueStrength
-     *            the strength for values
-     * @param valueEquivalence
-     *            the Equivalence to use for values
-     * @param expectedSize
-     *            an estimate of the number of elements that will be held in the map. If no estimate is known, zero is
-     *            an acceptable value.
+     *
+     * @param <ValueType>      the type parameter
+     * @param valueStrength    the strength for values
+     * @param valueEquivalence the Equivalence to use for values
+     * @param expectedSize     an estimate of the number of elements that will be held in the map. If no estimate is known, zero is            an acceptable value.
      * @return the map
      */
     public static <ValueType> CustomConcurrentHashMap<Integer, ValueType> newIntKeyMap(Strength valueStrength,
@@ -1140,14 +1191,11 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
 
     /**
      * Returns a new map using the given key parameters and Integer values.
-     * 
-     * @param keyStrength
-     *            the strength for keys
-     * @param keyEquivalence
-     *            the Equivalence to use for keys
-     * @param expectedSize
-     *            an estimate of the number of elements that will be held in the map. If no estimate is known, zero is
-     *            an acceptable value.
+     *
+     * @param <KeyType>      the type parameter
+     * @param keyStrength    the strength for keys
+     * @param keyEquivalence the Equivalence to use for keys
+     * @param expectedSize   an estimate of the number of elements that will be held in the map. If no estimate is known, zero is            an acceptable value.
      * @return the map
      */
     public static <KeyType> CustomConcurrentHashMap<KeyType, Integer> newIntValueMap(Strength keyStrength,
@@ -1160,6 +1208,9 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
      * Applies a supplemental hash function to a given hashCode, which defends against poor quality hash functions. This
      * is critical because we use power-of-two length hash tables, that otherwise encounter collisions for hashCodes
      * that do not differ in lower or upper bits.
+     *
+     * @param h the h
+     * @return the int
      */
     static int spreadHash(int h) {
         // Spread bits to regularize both segment and index locations,
@@ -1172,6 +1223,11 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         return h ^ h >>> 16;
     }
 
+    /**
+     * Start reclamation reference queue.
+     *
+     * @return the reference queue
+     */
     static synchronized ReferenceQueue<Object> startReclamation() {
         ReferenceQueue<Object> q = refQueue;
         if (q == null) {
@@ -1181,20 +1237,46 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         return q;
     }
 
-    // Fenced store into segment table array. Unneeded when we have Fences
+    /**
+     * Store node.
+     *
+     * @param table the table
+     * @param i     the
+     * @param r     the r
+     */
+// Fenced store into segment table array. Unneeded when we have Fences
     static final void storeNode(Node[] table, int i, Node r) {
         long nodeOffset = ((long) i << TABLE_SHIFT) + TABLE_BASE;
         UNSAFE.putOrderedObject(table, nodeOffset, r);
     }
 
+    /**
+     * Store segment.
+     *
+     * @param segs the segs
+     * @param i    the
+     * @param s    the s
+     */
     static final void storeSegment(Segment[] segs, int i, Segment s) {
         long segmentOffset = ((long) i << SEGMENTS_SHIFT) + SEGMENT_BASE;
         UNSAFE.putOrderedObject(segs, segmentOffset, s);
     }
 
+    /**
+     * The type Embedded soft reference.
+     */
     static class EmbeddedSoftReference extends SoftReference implements Reclaimable {
+        /**
+         * The Outer.
+         */
         final Reclaimable outer;
 
+        /**
+         * Instantiates a new Embedded soft reference.
+         *
+         * @param x     the x
+         * @param outer the outer
+         */
         EmbeddedSoftReference(Object x, Reclaimable outer) {
             super(x, getReclamationQueue());
             this.outer = outer;
@@ -1206,9 +1288,21 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         }
     }
 
+    /**
+     * The type Embedded weak reference.
+     */
     static class EmbeddedWeakReference extends WeakReference implements Reclaimable {
+        /**
+         * The Outer.
+         */
         final Reclaimable outer;
 
+        /**
+         * Instantiates a new Embedded weak reference.
+         *
+         * @param x     the x
+         * @param outer the outer
+         */
         EmbeddedWeakReference(Object x, Reclaimable outer) {
             super(x, getReclamationQueue());
             this.outer = outer;
@@ -1222,12 +1316,18 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
 
     // overridden AbstractMap methods
 
+    /**
+     * The type Entry iterator.
+     */
     final class EntryIterator extends HashIterator implements Iterator<Map.Entry<K, V>> {
         public Map.Entry<K, V> next() {
             return super.nextEntry();
         }
     }
 
+    /**
+     * The type Entry set.
+     */
     final class EntrySet extends AbstractSet<Map.Entry<K, V>> {
         public void clear() {
             CustomConcurrentHashMap.this.clear();
@@ -1268,31 +1368,33 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
      * signatures of the methods of this interface reflect those of {@link java.util.Map}: While only elements of
      * {@code K} may be entered into a Map, any {@code Object} may be tested for membership. Note that the performance
      * of hash maps is heavily dependent on the quality of hash functions.
+     *
+     * @param <K> the type parameter
      */
     public interface Equivalence<K> {
         /**
          * Returns true if the given objects are considered equal. This function must obey an equivalence relation:
          * equal(a, a) is always true, equal(a, b) implies equal(b, a), and (equal(a, b) &amp;&amp; equal(b, c) implies
          * equal(a, c). Note that the second argument need not be known to have the same declared type as the first.
-         * 
-         * @param key
-         *            a key in, or being placed in, the map
-         * @param x
-         *            an object queried for membership
+         *
+         * @param key a key in, or being placed in, the map
+         * @param x   an object queried for membership
          * @return true if considered equal
          */
         boolean equal(K key, Object x);
 
         /**
          * Returns a hash value such that equal(a, b) implies hash(a)==hash(b).
-         * 
-         * @param x
-         *            an object queried for membership
+         *
+         * @param x an object queried for membership
          * @return a hash value
          */
         int hash(Object x);
     }
 
+    /**
+     * The type Equivalence using equals.
+     */
     static final class EquivalenceUsingEquals implements Equivalence<Object>, Serializable {
         private static final long serialVersionUID = 7259069247764182397L;
 
@@ -1305,6 +1407,9 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         }
     }
 
+    /**
+     * The type Equivalence using identity.
+     */
     static final class EquivalenceUsingIdentity implements Equivalence<Object>, Serializable {
         private static final long serialVersionUID = 7259069246764182397L;
 
@@ -1319,21 +1424,51 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
 
     // Reference queue mechanics for reclaimable nodes
 
+    /**
+     * The type Hash iterator.
+     */
     abstract class HashIterator {
+        /**
+         * The Current table.
+         */
         Node[] currentTable;
+        /**
+         * The Last key.
+         */
         Object lastKey; // for remove()
+        /**
+         * The Next key.
+         */
         Object nextKey; // key of nextNode
+        /**
+         * The Next node.
+         */
         Node nextNode;
+        /**
+         * The Next segment index.
+         */
         int nextSegmentIndex;
+        /**
+         * The Next table index.
+         */
         int nextTableIndex;
+        /**
+         * The Next value.
+         */
         Object nextValue; // value of nextNode
 
+        /**
+         * Instantiates a new Hash iterator.
+         */
         HashIterator() {
             nextSegmentIndex = segments.length - 1;
             nextTableIndex = -1;
             advance();
         }
 
+        /**
+         * Advance.
+         */
         final void advance() {
             lastKey = nextKey;
             if (nextNode != null) {
@@ -1364,10 +1499,20 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
             }
         }
 
+        /**
+         * Has next boolean.
+         *
+         * @return the boolean
+         */
         public boolean hasNext() {
             return nextNode != null;
         }
 
+        /**
+         * Next entry map . entry.
+         *
+         * @return the map . entry
+         */
         final Map.Entry<K, V> nextEntry() {
             if (nextNode == null) {
                 throw new NoSuchElementException();
@@ -1377,6 +1522,11 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
             return e;
         }
 
+        /**
+         * Next key k.
+         *
+         * @return the k
+         */
         final K nextKey() {
             if (nextNode == null) {
                 throw new NoSuchElementException();
@@ -1386,6 +1536,11 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
             return (K) k;
         }
 
+        /**
+         * Next value v.
+         *
+         * @return the v
+         */
         final V nextValue() {
             if (nextNode == null) {
                 throw new NoSuchElementException();
@@ -1395,6 +1550,9 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
             return (V) v;
         }
 
+        /**
+         * Remove.
+         */
         public void remove() {
             if (lastKey == null) {
                 throw new IllegalStateException();
@@ -1404,9 +1562,22 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         }
     }
 
+    /**
+     * The type Int key int value node.
+     */
     abstract static class IntKeyIntValueNode extends IntKeyNode {
+        /**
+         * The Value.
+         */
         volatile int value;
 
+        /**
+         * Instantiates a new Int key int value node.
+         *
+         * @param locator the locator
+         * @param key     the key
+         * @param value   the value
+         */
         IntKeyIntValueNode(int locator, Object key, Object value) {
             super(locator, key);
             this.value = ((Integer) value).intValue();
@@ -1423,6 +1594,9 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         }
     }
 
+    /**
+     * The type Int key int value node factory.
+     */
     static final class IntKeyIntValueNodeFactory implements NodeFactory, Serializable {
         private static final long serialVersionUID = 7249069346764182397L;
 
@@ -1435,9 +1609,21 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         }
     }
 
+    /**
+     * The type Int key node.
+     */
     abstract static class IntKeyNode implements Node {
+        /**
+         * The Key.
+         */
         final int key;
 
+        /**
+         * Instantiates a new Int key node.
+         *
+         * @param locator the locator
+         * @param key     the key
+         */
         IntKeyNode(int locator, Object key) {
             this.key = ((Integer) key).intValue();
         }
@@ -1453,7 +1639,16 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
 
     // classes extending Weak/soft refs embedded in reclaimable nodes
 
+    /**
+     * The type Int key self value node.
+     */
     abstract static class IntKeySelfValueNode extends IntKeyNode {
+        /**
+         * Instantiates a new Int key self value node.
+         *
+         * @param locator the locator
+         * @param key     the key
+         */
         IntKeySelfValueNode(int locator, Object key) {
             super(locator, key);
         }
@@ -1467,6 +1662,9 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         public final void setValue(Object value) {}
     }
 
+    /**
+     * The type Int key self value node factory.
+     */
     static final class IntKeySelfValueNodeFactory implements NodeFactory, Serializable {
         private static final long serialVersionUID = 7249069346764182397L;
 
@@ -1483,10 +1681,27 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
 
     // Strong Keys
 
+    /**
+     * The type Int key soft value node.
+     */
     abstract static class IntKeySoftValueNode extends IntKeyNode {
+        /**
+         * The Cchm.
+         */
         final CustomConcurrentHashMap cchm;
+        /**
+         * The Value ref.
+         */
         volatile EmbeddedSoftReference valueRef;
 
+        /**
+         * Instantiates a new Int key soft value node.
+         *
+         * @param locator the locator
+         * @param key     the key
+         * @param value   the value
+         * @param cchm    the cchm
+         */
         IntKeySoftValueNode(int locator, Object key, Object value, CustomConcurrentHashMap cchm) {
             super(locator, key);
             this.cchm = cchm;
@@ -1513,6 +1728,9 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         }
     }
 
+    /**
+     * The type Int key soft value node factory.
+     */
     static final class IntKeySoftValueNodeFactory implements NodeFactory, Serializable {
         private static final long serialVersionUID = 7249069346764182397L;
 
@@ -1525,9 +1743,22 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         }
     }
 
+    /**
+     * The type Int key strong value node.
+     */
     abstract static class IntKeyStrongValueNode extends IntKeyNode {
+        /**
+         * The Value.
+         */
         volatile Object value;
 
+        /**
+         * Instantiates a new Int key strong value node.
+         *
+         * @param locator the locator
+         * @param key     the key
+         * @param value   the value
+         */
         IntKeyStrongValueNode(int locator, Object key, Object value) {
             super(locator, key);
             this.value = value;
@@ -1544,6 +1775,9 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         }
     }
 
+    /**
+     * The type Int key strong value node factory.
+     */
     static final class IntKeyStrongValueNodeFactory implements NodeFactory, Serializable {
         private static final long serialVersionUID = 7249069346764182397L;
 
@@ -1556,10 +1790,27 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         }
     }
 
+    /**
+     * The type Int key weak value node.
+     */
     abstract static class IntKeyWeakValueNode extends IntKeyNode {
+        /**
+         * The Cchm.
+         */
         final CustomConcurrentHashMap cchm;
+        /**
+         * The Value ref.
+         */
         volatile EmbeddedWeakReference valueRef;
 
+        /**
+         * Instantiates a new Int key weak value node.
+         *
+         * @param locator the locator
+         * @param key     the key
+         * @param value   the value
+         * @param cchm    the cchm
+         */
         IntKeyWeakValueNode(int locator, Object key, Object value, CustomConcurrentHashMap cchm) {
             super(locator, key);
             this.cchm = cchm;
@@ -1586,6 +1837,9 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         }
     }
 
+    /**
+     * The type Int key weak value node factory.
+     */
     static final class IntKeyWeakValueNodeFactory implements NodeFactory, Serializable {
         private static final long serialVersionUID = 7249069346764182397L;
 
@@ -1598,6 +1852,9 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         }
     }
 
+    /**
+     * The type Key iterator.
+     */
     final class KeyIterator extends HashIterator implements Iterator<K> {
         public K next() {
             return super.nextKey();
@@ -1608,21 +1865,22 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
      * A hash-based set with properties identical to those of {@code Collections.newSetFromMap} applied to a
      * {@code CustomConcurrentHashMap}, but possibly more space-efficient. The set does not permit null elements. The
      * set is serializable; however, serializing a set that uses soft or weak references can give unpredictable results.
+     *
+     * @param <K> the type parameter
      */
     public static class KeySet<K> extends AbstractSet<K> implements Set<K>, Serializable {
 
+        /**
+         * The Cchm.
+         */
         final CustomConcurrentHashMap<K, K> cchm;
 
         /**
          * Creates a set with the given parameters.
-         * 
-         * @param strength
-         *            the strength of elements
-         * @param equivalence
-         *            the Equivalence to use
-         * @param expectedSize
-         *            an estimate of the number of elements that will be held in the set. If no estimate is known, zero
-         *            is an acceptable value.
+         *
+         * @param strength     the strength of elements
+         * @param equivalence  the Equivalence to use
+         * @param expectedSize an estimate of the number of elements that will be held in the set. If no estimate is known, zero            is an acceptable value.
          */
         public KeySet(Strength strength, Equivalence<? super K> equivalence, int expectedSize) {
             this.cchm = new CustomConcurrentHashMap<K, K>(strength.getName(), equivalence, SELF_STRING, equivalence,
@@ -1682,9 +1940,8 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         /**
          * Returns an element equivalent to the given element with respect to this set's Equivalence, if such an element
          * exists, else adds and returns the given element.
-         * 
-         * @param e
-         *            the element
+         *
+         * @param e the element
          * @return e, or an element equivalent to e
          */
         public K intern(K e) {
@@ -1732,6 +1989,9 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         }
     }
 
+    /**
+     * The type Key set view.
+     */
     final class KeySetView extends AbstractSet<K> {
         public void clear() {
             CustomConcurrentHashMap.this.clear();
@@ -1760,9 +2020,23 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
 
     // ...
 
+    /**
+     * The type Linked int key int value node.
+     */
     static final class LinkedIntKeyIntValueNode extends IntKeyIntValueNode {
+        /**
+         * The Linkage.
+         */
         volatile Node linkage;
 
+        /**
+         * Instantiates a new Linked int key int value node.
+         *
+         * @param locator the locator
+         * @param key     the key
+         * @param value   the value
+         * @param linkage the linkage
+         */
         LinkedIntKeyIntValueNode(int locator, Object key, Object value, Node linkage) {
             super(locator, key, value);
             this.linkage = linkage;
@@ -1777,9 +2051,22 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         }
     }
 
+    /**
+     * The type Linked int key self value node.
+     */
     static final class LinkedIntKeySelfValueNode extends IntKeySelfValueNode {
+        /**
+         * The Linkage.
+         */
         volatile Node linkage;
 
+        /**
+         * Instantiates a new Linked int key self value node.
+         *
+         * @param locator the locator
+         * @param key     the key
+         * @param linkage the linkage
+         */
         LinkedIntKeySelfValueNode(int locator, Object key, Node linkage) {
             super(locator, key);
             this.linkage = linkage;
@@ -1794,9 +2081,24 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         }
     }
 
+    /**
+     * The type Linked int key soft value node.
+     */
     static final class LinkedIntKeySoftValueNode extends IntKeySoftValueNode {
+        /**
+         * The Linkage.
+         */
         volatile Node linkage;
 
+        /**
+         * Instantiates a new Linked int key soft value node.
+         *
+         * @param locator the locator
+         * @param key     the key
+         * @param value   the value
+         * @param cchm    the cchm
+         * @param linkage the linkage
+         */
         LinkedIntKeySoftValueNode(int locator, Object key, Object value, CustomConcurrentHashMap cchm, Node linkage) {
             super(locator, key, value, cchm);
             this.linkage = linkage;
@@ -1811,9 +2113,23 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         }
     }
 
+    /**
+     * The type Linked int key strong value node.
+     */
     static final class LinkedIntKeyStrongValueNode extends IntKeyStrongValueNode {
+        /**
+         * The Linkage.
+         */
         volatile Node linkage;
 
+        /**
+         * Instantiates a new Linked int key strong value node.
+         *
+         * @param locator the locator
+         * @param key     the key
+         * @param value   the value
+         * @param linkage the linkage
+         */
         LinkedIntKeyStrongValueNode(int locator, Object key, Object value, Node linkage) {
             super(locator, key, value);
             this.linkage = linkage;
@@ -1830,9 +2146,24 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
 
     // ...
 
+    /**
+     * The type Linked int key weak value node.
+     */
     static final class LinkedIntKeyWeakValueNode extends IntKeyWeakValueNode {
+        /**
+         * The Linkage.
+         */
         volatile Node linkage;
 
+        /**
+         * Instantiates a new Linked int key weak value node.
+         *
+         * @param locator the locator
+         * @param key     the key
+         * @param value   the value
+         * @param cchm    the cchm
+         * @param linkage the linkage
+         */
         LinkedIntKeyWeakValueNode(int locator, Object key, Object value, CustomConcurrentHashMap cchm, Node linkage) {
             super(locator, key, value, cchm);
             this.linkage = linkage;
@@ -1847,9 +2178,24 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         }
     }
 
+    /**
+     * The type Linked soft key int value node.
+     */
     static final class LinkedSoftKeyIntValueNode extends SoftKeyIntValueNode {
+        /**
+         * The Linkage.
+         */
         volatile Node linkage;
 
+        /**
+         * Instantiates a new Linked soft key int value node.
+         *
+         * @param locator the locator
+         * @param key     the key
+         * @param value   the value
+         * @param cchm    the cchm
+         * @param linkage the linkage
+         */
         LinkedSoftKeyIntValueNode(int locator, Object key, Object value, CustomConcurrentHashMap cchm, Node linkage) {
             super(locator, key, value, cchm);
             this.linkage = linkage;
@@ -1864,9 +2210,23 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         }
     }
 
+    /**
+     * The type Linked soft key self value node.
+     */
     static final class LinkedSoftKeySelfValueNode extends SoftKeySelfValueNode {
+        /**
+         * The Linkage.
+         */
         volatile Node linkage;
 
+        /**
+         * Instantiates a new Linked soft key self value node.
+         *
+         * @param locator the locator
+         * @param key     the key
+         * @param cchm    the cchm
+         * @param linkage the linkage
+         */
         LinkedSoftKeySelfValueNode(int locator, Object key, CustomConcurrentHashMap cchm, Node linkage) {
             super(locator, key, cchm);
             this.linkage = linkage;
@@ -1881,9 +2241,24 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         }
     }
 
+    /**
+     * The type Linked soft key soft value node.
+     */
     static final class LinkedSoftKeySoftValueNode extends SoftKeySoftValueNode {
+        /**
+         * The Linkage.
+         */
         volatile Node linkage;
 
+        /**
+         * Instantiates a new Linked soft key soft value node.
+         *
+         * @param locator the locator
+         * @param key     the key
+         * @param value   the value
+         * @param cchm    the cchm
+         * @param linkage the linkage
+         */
         LinkedSoftKeySoftValueNode(int locator, Object key, Object value, CustomConcurrentHashMap cchm, Node linkage) {
             super(locator, key, value, cchm);
             this.linkage = linkage;
@@ -1898,9 +2273,24 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         }
     }
 
+    /**
+     * The type Linked soft key strong value node.
+     */
     static final class LinkedSoftKeyStrongValueNode extends SoftKeyStrongValueNode {
+        /**
+         * The Linkage.
+         */
         volatile Node linkage;
 
+        /**
+         * Instantiates a new Linked soft key strong value node.
+         *
+         * @param locator the locator
+         * @param key     the key
+         * @param value   the value
+         * @param cchm    the cchm
+         * @param linkage the linkage
+         */
         LinkedSoftKeyStrongValueNode(int locator, Object key, Object value, CustomConcurrentHashMap cchm, Node linkage) {
             super(locator, key, value, cchm);
             this.linkage = linkage;
@@ -1915,9 +2305,24 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         }
     }
 
+    /**
+     * The type Linked soft key weak value node.
+     */
     static final class LinkedSoftKeyWeakValueNode extends SoftKeyWeakValueNode {
+        /**
+         * The Linkage.
+         */
         volatile Node linkage;
 
+        /**
+         * Instantiates a new Linked soft key weak value node.
+         *
+         * @param locator the locator
+         * @param key     the key
+         * @param value   the value
+         * @param cchm    the cchm
+         * @param linkage the linkage
+         */
         LinkedSoftKeyWeakValueNode(int locator, Object key, Object value, CustomConcurrentHashMap cchm, Node linkage) {
             super(locator, key, value, cchm);
             this.linkage = linkage;
@@ -1932,9 +2337,23 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         }
     }
 
+    /**
+     * The type Linked strong key int value node.
+     */
     static final class LinkedStrongKeyIntValueNode extends StrongKeyIntValueNode {
+        /**
+         * The Linkage.
+         */
         volatile Node linkage;
 
+        /**
+         * Instantiates a new Linked strong key int value node.
+         *
+         * @param locator the locator
+         * @param key     the key
+         * @param value   the value
+         * @param linkage the linkage
+         */
         LinkedStrongKeyIntValueNode(int locator, Object key, Object value, Node linkage) {
             super(locator, key, value);
             this.linkage = linkage;
@@ -1949,9 +2368,22 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         }
     }
 
+    /**
+     * The type Linked strong key self value node.
+     */
     static final class LinkedStrongKeySelfValueNode extends StrongKeySelfValueNode {
+        /**
+         * The Linkage.
+         */
         volatile Node linkage;
 
+        /**
+         * Instantiates a new Linked strong key self value node.
+         *
+         * @param locator the locator
+         * @param key     the key
+         * @param linkage the linkage
+         */
         LinkedStrongKeySelfValueNode(int locator, Object key, Node linkage) {
             super(locator, key);
             this.linkage = linkage;
@@ -1968,9 +2400,24 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
 
     // Weak keys
 
+    /**
+     * The type Linked strong key soft value node.
+     */
     static final class LinkedStrongKeySoftValueNode extends StrongKeySoftValueNode {
+        /**
+         * The Linkage.
+         */
         volatile Node linkage;
 
+        /**
+         * Instantiates a new Linked strong key soft value node.
+         *
+         * @param locator the locator
+         * @param key     the key
+         * @param value   the value
+         * @param cchm    the cchm
+         * @param linkage the linkage
+         */
         LinkedStrongKeySoftValueNode(int locator, Object key, Object value, CustomConcurrentHashMap cchm, Node linkage) {
             super(locator, key, value, cchm);
             this.linkage = linkage;
@@ -1985,9 +2432,23 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         }
     }
 
+    /**
+     * The type Linked strong key strong value node.
+     */
     static final class LinkedStrongKeyStrongValueNode extends StrongKeyStrongValueNode {
+        /**
+         * The Linkage.
+         */
         volatile Node linkage;
 
+        /**
+         * Instantiates a new Linked strong key strong value node.
+         *
+         * @param locator the locator
+         * @param key     the key
+         * @param value   the value
+         * @param linkage the linkage
+         */
         LinkedStrongKeyStrongValueNode(int locator, Object key, Object value, Node linkage) {
             super(locator, key, value);
             this.linkage = linkage;
@@ -2002,9 +2463,24 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         }
     }
 
+    /**
+     * The type Linked strong key weak value node.
+     */
     static final class LinkedStrongKeyWeakValueNode extends StrongKeyWeakValueNode {
+        /**
+         * The Linkage.
+         */
         volatile Node linkage;
 
+        /**
+         * Instantiates a new Linked strong key weak value node.
+         *
+         * @param locator the locator
+         * @param key     the key
+         * @param value   the value
+         * @param cchm    the cchm
+         * @param linkage the linkage
+         */
         LinkedStrongKeyWeakValueNode(int locator, Object key, Object value, CustomConcurrentHashMap cchm, Node linkage) {
             super(locator, key, value, cchm);
             this.linkage = linkage;
@@ -2019,9 +2495,24 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         }
     }
 
+    /**
+     * The type Linked weak key int value node.
+     */
     static final class LinkedWeakKeyIntValueNode extends WeakKeyIntValueNode {
+        /**
+         * The Linkage.
+         */
         volatile Node linkage;
 
+        /**
+         * Instantiates a new Linked weak key int value node.
+         *
+         * @param locator the locator
+         * @param key     the key
+         * @param value   the value
+         * @param cchm    the cchm
+         * @param linkage the linkage
+         */
         LinkedWeakKeyIntValueNode(int locator, Object key, Object value, CustomConcurrentHashMap cchm, Node linkage) {
             super(locator, key, value, cchm);
             this.linkage = linkage;
@@ -2036,9 +2527,23 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         }
     }
 
+    /**
+     * The type Linked weak key self value node.
+     */
     static final class LinkedWeakKeySelfValueNode extends WeakKeySelfValueNode {
+        /**
+         * The Linkage.
+         */
         volatile Node linkage;
 
+        /**
+         * Instantiates a new Linked weak key self value node.
+         *
+         * @param locator the locator
+         * @param key     the key
+         * @param cchm    the cchm
+         * @param linkage the linkage
+         */
         LinkedWeakKeySelfValueNode(int locator, Object key, CustomConcurrentHashMap cchm, Node linkage) {
             super(locator, key, cchm);
             this.linkage = linkage;
@@ -2053,9 +2558,24 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         }
     }
 
+    /**
+     * The type Linked weak key soft value node.
+     */
     static final class LinkedWeakKeySoftValueNode extends WeakKeySoftValueNode {
+        /**
+         * The Linkage.
+         */
         volatile Node linkage;
 
+        /**
+         * Instantiates a new Linked weak key soft value node.
+         *
+         * @param locator the locator
+         * @param key     the key
+         * @param value   the value
+         * @param cchm    the cchm
+         * @param linkage the linkage
+         */
         LinkedWeakKeySoftValueNode(int locator, Object key, Object value, CustomConcurrentHashMap cchm, Node linkage) {
             super(locator, key, value, cchm);
             this.linkage = linkage;
@@ -2070,9 +2590,24 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         }
     }
 
+    /**
+     * The type Linked weak key strong value node.
+     */
     static final class LinkedWeakKeyStrongValueNode extends WeakKeyStrongValueNode {
+        /**
+         * The Linkage.
+         */
         volatile Node linkage;
 
+        /**
+         * Instantiates a new Linked weak key strong value node.
+         *
+         * @param locator the locator
+         * @param key     the key
+         * @param value   the value
+         * @param cchm    the cchm
+         * @param linkage the linkage
+         */
         LinkedWeakKeyStrongValueNode(int locator, Object key, Object value, CustomConcurrentHashMap cchm, Node linkage) {
             super(locator, key, value, cchm);
             this.linkage = linkage;
@@ -2087,9 +2622,24 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         }
     }
 
+    /**
+     * The type Linked weak key weak value node.
+     */
     static final class LinkedWeakKeyWeakValueNode extends WeakKeyWeakValueNode {
+        /**
+         * The Linkage.
+         */
         volatile Node linkage;
 
+        /**
+         * Instantiates a new Linked weak key weak value node.
+         *
+         * @param locator the locator
+         * @param key     the key
+         * @param value   the value
+         * @param cchm    the cchm
+         * @param linkage the linkage
+         */
         LinkedWeakKeyWeakValueNode(int locator, Object key, Object value, CustomConcurrentHashMap cchm, Node linkage) {
             super(locator, key, value, cchm);
             this.linkage = linkage;
@@ -2106,6 +2656,9 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
 
     /**
      * A function computing a mapping from the given key to a value, or {@code null} if there is no mapping.
+     *
+     * @param <K> the type parameter
+     * @param <V> the type parameter
      */
     public interface MappingFunction<K, V> {
         /**
@@ -2113,9 +2666,8 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
          * exception, the exception is rethrown to its caller, and no mapping is recorded. Because this function is
          * invoked within atomicity control, the computation should be short and simple. The most common usage is to
          * construct a new object serving as an initial mapped value.
-         * 
-         * @param key
-         *            the (non-null) key
+         *
+         * @param key the (non-null) key
          * @return a value, or null if none
          */
         V map(K key);
@@ -2126,7 +2678,7 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
      * map creating the node. This includes methods used solely for internal bookkeeping by maps, that must be treating
      * opaquely by implementation classes. (This requirement stems from the fact that concrete implementations may be
      * required to subclass {@link java.lang.ref.Reference} or other classes, so a base class cannot be established.)
-     * 
+     * <p>
      * This interface uses raw types as the lesser of evils. Otherwise we'd encounter almost as many unchecked casts
      * when nodes are used across sets, etc.
      */
@@ -2134,7 +2686,7 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         /**
          * Returns the key established during the creation of this node. Note: This method is named "get" rather than
          * "getKey" to simplify usage of Reference keys.
-         * 
+         *
          * @return the key
          */
         Object get();
@@ -2142,14 +2694,14 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         /**
          * Returns the linkage established during the creation of this node or, if since updated, the linkage set by the
          * most recent call to setLinkage.
-         * 
+         *
          * @return the linkage
          */
         Node getLinkage();
 
         /**
          * Returns the locator established during the creation of this node.
-         * 
+         *
          * @return the locator
          */
         int getLocator();
@@ -2157,26 +2709,23 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         /**
          * Returns the value established during the creation of this node or, if since updated, the value set by the
          * most recent call to setValue, or throws an exception if value could not be computed.
-         * 
+         *
          * @return the value
-         * @throws RuntimeException
-         *             or Error if computeValue failed
+         * @throws RuntimeException or Error if computeValue failed
          */
         Object getValue();
 
         /**
          * Records the linkage to be returned by the next call to getLinkage.
-         * 
-         * @param linkage
-         *            the linkage
+         *
+         * @param linkage the linkage
          */
         void setLinkage(Node linkage);
 
         /**
          * Nodes the value to be returned by the next call to getValue.
-         * 
-         * @param value
-         *            the value
+         *
+         * @param value the value
          */
         void setValue(Object value);
     }
@@ -2187,17 +2736,13 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
     interface NodeFactory extends Serializable {
         /**
          * Creates and returns a Node using the given parameters.
-         * 
-         * @param locator
-         *            an opaque immutable locator for this node
-         * @param key
-         *            the (non-null) immutable key
-         * @param value
-         *            the (non-null) volatile value
-         * @param cchm
-         *            the table creating this node
-         * @param linkage
-         *            an opaque volatile linkage for maintaining this node
+         *
+         * @param locator an opaque immutable locator for this node
+         * @param key     the (non-null) immutable key
+         * @param value   the (non-null) volatile value
+         * @param cchm    the table creating this node
+         * @param linkage an opaque volatile linkage for maintaining this node
+         * @return the node
          */
         Node newNode(int locator, Object key, Object value, CustomConcurrentHashMap cchm, Node linkage);
     }
@@ -2212,9 +2757,20 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         void onReclamation();
     }
 
+    /**
+     * The type Reclamation thread.
+     */
     static final class ReclamationThread extends Thread {
+        /**
+         * The Queue.
+         */
         final ReferenceQueue<Object> queue;
 
+        /**
+         * Instantiates a new Reclamation thread.
+         *
+         * @param q the q
+         */
         ReclamationThread(ReferenceQueue<Object> q) {
             this.queue = q;
             setDaemon(true);
@@ -2238,15 +2794,16 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
     /**
      * A function computing a new mapping from the given key and its current value to a new value, or {@code null} if
      * there is no mapping.
+     *
+     * @param <K> the type parameter
+     * @param <V> the type parameter
      */
     public interface RemappingFunction<K, V> {
         /**
          * Returns a new value for the given key and its current, or null if there is no mapping.
-         * 
-         * @param key
-         *            the key
-         * @param value
-         *            the current value, or null if none
+         *
+         * @param key   the key
+         * @param value the current value, or null if none
          * @return a value, or null if none
          */
         V remap(K key, V value);
@@ -2257,20 +2814,38 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
      * methods for directly assigning these fields, which must only be called while holding locks.
      */
     static final class Segment extends ReentrantLock {
+        /**
+         * The Count.
+         */
         int count;
+        /**
+         * The Table.
+         */
         volatile Node[] table;
 
+        /**
+         * Clear count.
+         */
         void clearCount() {
             count = 0;
             table = null;
         }
 
+        /**
+         * Decrement count.
+         */
         void decrementCount() {
             if (--count == 0) {
                 table = null;
             }
         }
 
+        /**
+         * Get table for add node [ ].
+         *
+         * @param cchm the cchm
+         * @return the node [ ]
+         */
         Node[] getTableForAdd(CustomConcurrentHashMap cchm) {
             int len;
             Node[] tab = table;
@@ -2282,16 +2857,27 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
             }
         }
 
+        /**
+         * Get table for traversal node [ ].
+         *
+         * @return the node [ ]
+         */
         Node[] getTableForTraversal() {
             return table;
         }
 
+        /**
+         * Increment count.
+         */
         void incrementCount() {
             ++count;
         }
 
         /**
          * See the similar code in ConcurrentHashMap for explanation.
+         *
+         * @param cchm the cchm
+         * @return the node [ ]
          */
         Node[] resizeTable(CustomConcurrentHashMap cchm) {
             Node[] oldTable = table;
@@ -2348,9 +2934,23 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         }
     }
 
+    /**
+     * The type Soft key int value node.
+     */
     abstract static class SoftKeyIntValueNode extends SoftKeyNode {
+        /**
+         * The Value.
+         */
         volatile int value;
 
+        /**
+         * Instantiates a new Soft key int value node.
+         *
+         * @param locator the locator
+         * @param key     the key
+         * @param value   the value
+         * @param cchm    the cchm
+         */
         SoftKeyIntValueNode(int locator, Object key, Object value, CustomConcurrentHashMap cchm) {
             super(locator, key, cchm);
             this.value = ((Integer) value).intValue();
@@ -2365,6 +2965,9 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         }
     }
 
+    /**
+     * The type Soft key int value node factory.
+     */
     static final class SoftKeyIntValueNodeFactory implements NodeFactory, Serializable {
         private static final long serialVersionUID = 7249069346764182397L;
 
@@ -2377,10 +2980,26 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         }
     }
 
+    /**
+     * The type Soft key node.
+     */
     abstract static class SoftKeyNode extends SoftReference implements Node {
+        /**
+         * The Cchm.
+         */
         final CustomConcurrentHashMap cchm;
+        /**
+         * The Locator.
+         */
         final int locator;
 
+        /**
+         * Instantiates a new Soft key node.
+         *
+         * @param locator the locator
+         * @param key     the key
+         * @param cchm    the cchm
+         */
         SoftKeyNode(int locator, Object key, CustomConcurrentHashMap cchm) {
             super(key, getReclamationQueue());
             this.locator = locator;
@@ -2397,7 +3016,17 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         }
     }
 
+    /**
+     * The type Soft key self value node.
+     */
     abstract static class SoftKeySelfValueNode extends SoftKeyNode {
+        /**
+         * Instantiates a new Soft key self value node.
+         *
+         * @param locator the locator
+         * @param key     the key
+         * @param cchm    the cchm
+         */
         SoftKeySelfValueNode(int locator, Object key, CustomConcurrentHashMap cchm) {
             super(locator, key, cchm);
         }
@@ -2409,6 +3038,9 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         public final void setValue(Object value) {}
     }
 
+    /**
+     * The type Soft key self value node factory.
+     */
     static final class SoftKeySelfValueNodeFactory implements NodeFactory, Serializable {
         private static final long serialVersionUID = 7249069346764182397L;
 
@@ -2421,9 +3053,23 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         }
     }
 
+    /**
+     * The type Soft key soft value node.
+     */
     abstract static class SoftKeySoftValueNode extends SoftKeyNode {
+        /**
+         * The Value ref.
+         */
         volatile EmbeddedSoftReference valueRef;
 
+        /**
+         * Instantiates a new Soft key soft value node.
+         *
+         * @param locator the locator
+         * @param key     the key
+         * @param value   the value
+         * @param cchm    the cchm
+         */
         SoftKeySoftValueNode(int locator, Object key, Object value, CustomConcurrentHashMap cchm) {
             super(locator, key, cchm);
             if (value != null) {
@@ -2447,6 +3093,9 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
 
     // Soft keys
 
+    /**
+     * The type Soft key soft value node factory.
+     */
     static final class SoftKeySoftValueNodeFactory implements NodeFactory, Serializable {
         private static final long serialVersionUID = 7249069346764182397L;
 
@@ -2459,9 +3108,23 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         }
     }
 
+    /**
+     * The type Soft key strong value node.
+     */
     abstract static class SoftKeyStrongValueNode extends SoftKeyNode {
+        /**
+         * The Value.
+         */
         volatile Object value;
 
+        /**
+         * Instantiates a new Soft key strong value node.
+         *
+         * @param locator the locator
+         * @param key     the key
+         * @param value   the value
+         * @param cchm    the cchm
+         */
         SoftKeyStrongValueNode(int locator, Object key, Object value, CustomConcurrentHashMap cchm) {
             super(locator, key, cchm);
             this.value = value;
@@ -2476,6 +3139,9 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         }
     }
 
+    /**
+     * The type Soft key strong value node factory.
+     */
     static final class SoftKeyStrongValueNodeFactory implements NodeFactory, Serializable {
         private static final long serialVersionUID = 7249069346764182397L;
 
@@ -2488,9 +3154,23 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         }
     }
 
+    /**
+     * The type Soft key weak value node.
+     */
     abstract static class SoftKeyWeakValueNode extends SoftKeyNode {
+        /**
+         * The Value ref.
+         */
         volatile EmbeddedWeakReference valueRef;
 
+        /**
+         * Instantiates a new Soft key weak value node.
+         *
+         * @param locator the locator
+         * @param key     the key
+         * @param value   the value
+         * @param cchm    the cchm
+         */
         SoftKeyWeakValueNode(int locator, Object key, Object value, CustomConcurrentHashMap cchm) {
             super(locator, key, cchm);
             if (value != null) {
@@ -2512,6 +3192,9 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         }
     }
 
+    /**
+     * The type Soft key weak value node factory.
+     */
     static final class SoftKeyWeakValueNodeFactory implements NodeFactory, Serializable {
         private static final long serialVersionUID = 7249069346764182397L;
 
@@ -2529,21 +3212,50 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
      * the corresponding {@link java.lang.ref.Reference} types.
      */
     public enum Strength {
-        soft("Soft"), strong("Strong"), weak("Weak");
+        /**
+         * Soft strength.
+         */
+        soft("Soft"),
+        /**
+         * Strong strength.
+         */
+        strong("Strong"),
+        /**
+         * Weak strength.
+         */
+        weak("Weak");
         private final String name;
 
         Strength(String name) {
             this.name = name;
         }
 
+        /**
+         * Gets name.
+         *
+         * @return the name
+         */
         String getName() {
             return name;
         }
     }
 
+    /**
+     * The type Strong key int value node.
+     */
     abstract static class StrongKeyIntValueNode extends StrongKeyNode {
+        /**
+         * The Value.
+         */
         volatile int value;
 
+        /**
+         * Instantiates a new Strong key int value node.
+         *
+         * @param locator the locator
+         * @param key     the key
+         * @param value   the value
+         */
         StrongKeyIntValueNode(int locator, Object key, Object value) {
             super(locator, key);
             this.value = ((Integer) value).intValue();
@@ -2560,6 +3272,9 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         }
     }
 
+    /**
+     * The type Strong key int value node factory.
+     */
     static final class StrongKeyIntValueNodeFactory implements NodeFactory, Serializable {
         private static final long serialVersionUID = 7249069346764182397L;
 
@@ -2572,10 +3287,25 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         }
     }
 
+    /**
+     * The type Strong key node.
+     */
     abstract static class StrongKeyNode implements Node {
+        /**
+         * The Key.
+         */
         final Object key;
+        /**
+         * The Locator.
+         */
         final int locator;
 
+        /**
+         * Instantiates a new Strong key node.
+         *
+         * @param locator the locator
+         * @param key     the key
+         */
         StrongKeyNode(int locator, Object key) {
             this.locator = locator;
             this.key = key;
@@ -2590,7 +3320,16 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         }
     }
 
+    /**
+     * The type Strong key self value node.
+     */
     abstract static class StrongKeySelfValueNode extends StrongKeyNode {
+        /**
+         * Instantiates a new Strong key self value node.
+         *
+         * @param locator the locator
+         * @param key     the key
+         */
         StrongKeySelfValueNode(int locator, Object key) {
             super(locator, key);
         }
@@ -2604,6 +3343,9 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         public final void setValue(Object value) {}
     }
 
+    /**
+     * The type Strong key self value node factory.
+     */
     static final class StrongKeySelfValueNodeFactory implements NodeFactory, Serializable {
         private static final long serialVersionUID = 7249069346764182397L;
 
@@ -2616,10 +3358,27 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         }
     }
 
+    /**
+     * The type Strong key soft value node.
+     */
     abstract static class StrongKeySoftValueNode extends StrongKeyNode {
+        /**
+         * The Cchm.
+         */
         final CustomConcurrentHashMap cchm;
+        /**
+         * The Value ref.
+         */
         volatile EmbeddedSoftReference valueRef;
 
+        /**
+         * Instantiates a new Strong key soft value node.
+         *
+         * @param locator the locator
+         * @param key     the key
+         * @param value   the value
+         * @param cchm    the cchm
+         */
         StrongKeySoftValueNode(int locator, Object key, Object value, CustomConcurrentHashMap cchm) {
             super(locator, key);
             this.cchm = cchm;
@@ -2646,6 +3405,9 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         }
     }
 
+    /**
+     * The type Strong key soft value node factory.
+     */
     static final class StrongKeySoftValueNodeFactory implements NodeFactory, Serializable {
         private static final long serialVersionUID = 7249069346764182397L;
 
@@ -2658,9 +3420,22 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         }
     }
 
+    /**
+     * The type Strong key strong value node.
+     */
     abstract static class StrongKeyStrongValueNode extends StrongKeyNode {
+        /**
+         * The Value.
+         */
         volatile Object value;
 
+        /**
+         * Instantiates a new Strong key strong value node.
+         *
+         * @param locator the locator
+         * @param key     the key
+         * @param value   the value
+         */
         StrongKeyStrongValueNode(int locator, Object key, Object value) {
             super(locator, key);
             this.value = value;
@@ -2677,6 +3452,9 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         }
     }
 
+    /**
+     * The type Strong key strong value node factory.
+     */
     static final class StrongKeyStrongValueNodeFactory implements NodeFactory, Serializable {
         private static final long serialVersionUID = 7249069346764182397L;
 
@@ -2689,10 +3467,27 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         }
     }
 
+    /**
+     * The type Strong key weak value node.
+     */
     abstract static class StrongKeyWeakValueNode extends StrongKeyNode {
+        /**
+         * The Cchm.
+         */
         final CustomConcurrentHashMap cchm;
+        /**
+         * The Value ref.
+         */
         volatile EmbeddedWeakReference valueRef;
 
+        /**
+         * Instantiates a new Strong key weak value node.
+         *
+         * @param locator the locator
+         * @param key     the key
+         * @param value   the value
+         * @param cchm    the cchm
+         */
         StrongKeyWeakValueNode(int locator, Object key, Object value, CustomConcurrentHashMap cchm) {
             super(locator, key);
             this.cchm = cchm;
@@ -2719,6 +3514,9 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         }
     }
 
+    /**
+     * The type Strong key weak value node factory.
+     */
     static final class StrongKeyWeakValueNodeFactory implements NodeFactory, Serializable {
         private static final long serialVersionUID = 7249069346764182397L;
 
@@ -2731,7 +3529,17 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         }
     }
 
+    /**
+     * The type Terminal int key int value node.
+     */
     static final class TerminalIntKeyIntValueNode extends IntKeyIntValueNode {
+        /**
+         * Instantiates a new Terminal int key int value node.
+         *
+         * @param locator the locator
+         * @param key     the key
+         * @param value   the value
+         */
         TerminalIntKeyIntValueNode(int locator, Object key, Object value) {
             super(locator, key, value);
         }
@@ -2743,7 +3551,16 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         public void setLinkage(Node linkage) {}
     }
 
+    /**
+     * The type Terminal int key self value node.
+     */
     static final class TerminalIntKeySelfValueNode extends IntKeySelfValueNode {
+        /**
+         * Instantiates a new Terminal int key self value node.
+         *
+         * @param locator the locator
+         * @param key     the key
+         */
         TerminalIntKeySelfValueNode(int locator, Object key) {
             super(locator, key);
         }
@@ -2755,7 +3572,18 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         public void setLinkage(Node linkage) {}
     }
 
+    /**
+     * The type Terminal int key soft value node.
+     */
     static final class TerminalIntKeySoftValueNode extends IntKeySoftValueNode {
+        /**
+         * Instantiates a new Terminal int key soft value node.
+         *
+         * @param locator the locator
+         * @param key     the key
+         * @param value   the value
+         * @param cchm    the cchm
+         */
         TerminalIntKeySoftValueNode(int locator, Object key, Object value, CustomConcurrentHashMap cchm) {
             super(locator, key, value, cchm);
         }
@@ -2767,7 +3595,17 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         public void setLinkage(Node linkage) {}
     }
 
+    /**
+     * The type Terminal int key strong value node.
+     */
     static final class TerminalIntKeyStrongValueNode extends IntKeyStrongValueNode {
+        /**
+         * Instantiates a new Terminal int key strong value node.
+         *
+         * @param locator the locator
+         * @param key     the key
+         * @param value   the value
+         */
         TerminalIntKeyStrongValueNode(int locator, Object key, Object value) {
             super(locator, key, value);
         }
@@ -2779,7 +3617,18 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         public void setLinkage(Node linkage) {}
     }
 
+    /**
+     * The type Terminal int key weak value node.
+     */
     static final class TerminalIntKeyWeakValueNode extends IntKeyWeakValueNode {
+        /**
+         * Instantiates a new Terminal int key weak value node.
+         *
+         * @param locator the locator
+         * @param key     the key
+         * @param value   the value
+         * @param cchm    the cchm
+         */
         TerminalIntKeyWeakValueNode(int locator, Object key, Object value, CustomConcurrentHashMap cchm) {
             super(locator, key, value, cchm);
         }
@@ -2791,7 +3640,18 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         public void setLinkage(Node linkage) {}
     }
 
+    /**
+     * The type Terminal soft key int value node.
+     */
     static final class TerminalSoftKeyIntValueNode extends SoftKeyIntValueNode {
+        /**
+         * Instantiates a new Terminal soft key int value node.
+         *
+         * @param locator the locator
+         * @param key     the key
+         * @param value   the value
+         * @param cchm    the cchm
+         */
         TerminalSoftKeyIntValueNode(int locator, Object key, Object value, CustomConcurrentHashMap cchm) {
             super(locator, key, value, cchm);
         }
@@ -2803,7 +3663,17 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         public void setLinkage(Node linkage) {}
     }
 
+    /**
+     * The type Terminal soft key self value node.
+     */
     static final class TerminalSoftKeySelfValueNode extends SoftKeySelfValueNode {
+        /**
+         * Instantiates a new Terminal soft key self value node.
+         *
+         * @param locator the locator
+         * @param key     the key
+         * @param cchm    the cchm
+         */
         TerminalSoftKeySelfValueNode(int locator, Object key, CustomConcurrentHashMap cchm) {
             super(locator, key, cchm);
         }
@@ -2815,7 +3685,18 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         public void setLinkage(Node linkage) {}
     }
 
+    /**
+     * The type Terminal soft key soft value node.
+     */
     static final class TerminalSoftKeySoftValueNode extends SoftKeySoftValueNode {
+        /**
+         * Instantiates a new Terminal soft key soft value node.
+         *
+         * @param locator the locator
+         * @param key     the key
+         * @param value   the value
+         * @param cchm    the cchm
+         */
         TerminalSoftKeySoftValueNode(int locator, Object key, Object value, CustomConcurrentHashMap cchm) {
             super(locator, key, value, cchm);
         }
@@ -2827,7 +3708,18 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         public void setLinkage(Node linkage) {}
     }
 
+    /**
+     * The type Terminal soft key strong value node.
+     */
     static final class TerminalSoftKeyStrongValueNode extends SoftKeyStrongValueNode {
+        /**
+         * Instantiates a new Terminal soft key strong value node.
+         *
+         * @param locator the locator
+         * @param key     the key
+         * @param value   the value
+         * @param cchm    the cchm
+         */
         TerminalSoftKeyStrongValueNode(int locator, Object key, Object value, CustomConcurrentHashMap cchm) {
             super(locator, key, value, cchm);
         }
@@ -2839,7 +3731,18 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         public void setLinkage(Node linkage) {}
     }
 
+    /**
+     * The type Terminal soft key weak value node.
+     */
     static final class TerminalSoftKeyWeakValueNode extends SoftKeyWeakValueNode {
+        /**
+         * Instantiates a new Terminal soft key weak value node.
+         *
+         * @param locator the locator
+         * @param key     the key
+         * @param value   the value
+         * @param cchm    the cchm
+         */
         TerminalSoftKeyWeakValueNode(int locator, Object key, Object value, CustomConcurrentHashMap cchm) {
             super(locator, key, value, cchm);
         }
@@ -2851,7 +3754,17 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         public void setLinkage(Node linkage) {}
     }
 
+    /**
+     * The type Terminal strong key int value node.
+     */
     static final class TerminalStrongKeyIntValueNode extends StrongKeyIntValueNode {
+        /**
+         * Instantiates a new Terminal strong key int value node.
+         *
+         * @param locator the locator
+         * @param key     the key
+         * @param value   the value
+         */
         TerminalStrongKeyIntValueNode(int locator, Object key, Object value) {
             super(locator, key, value);
         }
@@ -2863,7 +3776,16 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         public void setLinkage(Node linkage) {}
     }
 
+    /**
+     * The type Terminal strong key self value node.
+     */
     static final class TerminalStrongKeySelfValueNode extends StrongKeySelfValueNode {
+        /**
+         * Instantiates a new Terminal strong key self value node.
+         *
+         * @param locator the locator
+         * @param key     the key
+         */
         TerminalStrongKeySelfValueNode(int locator, Object key) {
             super(locator, key);
         }
@@ -2875,7 +3797,18 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         public void setLinkage(Node linkage) {}
     }
 
+    /**
+     * The type Terminal strong key soft value node.
+     */
     static final class TerminalStrongKeySoftValueNode extends StrongKeySoftValueNode {
+        /**
+         * Instantiates a new Terminal strong key soft value node.
+         *
+         * @param locator the locator
+         * @param key     the key
+         * @param value   the value
+         * @param cchm    the cchm
+         */
         TerminalStrongKeySoftValueNode(int locator, Object key, Object value, CustomConcurrentHashMap cchm) {
             super(locator, key, value, cchm);
         }
@@ -2887,7 +3820,17 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         public void setLinkage(Node linkage) {}
     }
 
+    /**
+     * The type Terminal strong key strong value node.
+     */
     static final class TerminalStrongKeyStrongValueNode extends StrongKeyStrongValueNode {
+        /**
+         * Instantiates a new Terminal strong key strong value node.
+         *
+         * @param locator the locator
+         * @param key     the key
+         * @param value   the value
+         */
         TerminalStrongKeyStrongValueNode(int locator, Object key, Object value) {
             super(locator, key, value);
         }
@@ -2899,7 +3842,18 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         public void setLinkage(Node linkage) {}
     }
 
+    /**
+     * The type Terminal strong key weak value node.
+     */
     static final class TerminalStrongKeyWeakValueNode extends StrongKeyWeakValueNode {
+        /**
+         * Instantiates a new Terminal strong key weak value node.
+         *
+         * @param locator the locator
+         * @param key     the key
+         * @param value   the value
+         * @param cchm    the cchm
+         */
         TerminalStrongKeyWeakValueNode(int locator, Object key, Object value, CustomConcurrentHashMap cchm) {
             super(locator, key, value, cchm);
         }
@@ -2911,7 +3865,18 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         public void setLinkage(Node linkage) {}
     }
 
+    /**
+     * The type Terminal weak key int value node.
+     */
     static final class TerminalWeakKeyIntValueNode extends WeakKeyIntValueNode {
+        /**
+         * Instantiates a new Terminal weak key int value node.
+         *
+         * @param locator the locator
+         * @param key     the key
+         * @param value   the value
+         * @param cchm    the cchm
+         */
         TerminalWeakKeyIntValueNode(int locator, Object key, Object value, CustomConcurrentHashMap cchm) {
             super(locator, key, value, cchm);
         }
@@ -2923,7 +3888,17 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         public void setLinkage(Node linkage) {}
     }
 
+    /**
+     * The type Terminal weak key self value node.
+     */
     static final class TerminalWeakKeySelfValueNode extends WeakKeySelfValueNode {
+        /**
+         * Instantiates a new Terminal weak key self value node.
+         *
+         * @param locator the locator
+         * @param key     the key
+         * @param cchm    the cchm
+         */
         TerminalWeakKeySelfValueNode(int locator, Object key, CustomConcurrentHashMap cchm) {
             super(locator, key, cchm);
         }
@@ -2935,7 +3910,18 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         public void setLinkage(Node linkage) {}
     }
 
+    /**
+     * The type Terminal weak key soft value node.
+     */
     static final class TerminalWeakKeySoftValueNode extends WeakKeySoftValueNode {
+        /**
+         * Instantiates a new Terminal weak key soft value node.
+         *
+         * @param locator the locator
+         * @param key     the key
+         * @param value   the value
+         * @param cchm    the cchm
+         */
         TerminalWeakKeySoftValueNode(int locator, Object key, Object value, CustomConcurrentHashMap cchm) {
             super(locator, key, value, cchm);
         }
@@ -2947,7 +3933,18 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         public void setLinkage(Node linkage) {}
     }
 
+    /**
+     * The type Terminal weak key strong value node.
+     */
     static final class TerminalWeakKeyStrongValueNode extends WeakKeyStrongValueNode {
+        /**
+         * Instantiates a new Terminal weak key strong value node.
+         *
+         * @param locator the locator
+         * @param key     the key
+         * @param value   the value
+         * @param cchm    the cchm
+         */
         TerminalWeakKeyStrongValueNode(int locator, Object key, Object value, CustomConcurrentHashMap cchm) {
             super(locator, key, value, cchm);
         }
@@ -2959,7 +3956,18 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         public void setLinkage(Node linkage) {}
     }
 
+    /**
+     * The type Terminal weak key weak value node.
+     */
     static final class TerminalWeakKeyWeakValueNode extends WeakKeyWeakValueNode {
+        /**
+         * Instantiates a new Terminal weak key weak value node.
+         *
+         * @param locator the locator
+         * @param key     the key
+         * @param value   the value
+         * @param cchm    the cchm
+         */
         TerminalWeakKeyWeakValueNode(int locator, Object key, Object value, CustomConcurrentHashMap cchm) {
             super(locator, key, value, cchm);
         }
@@ -2971,12 +3979,18 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         public void setLinkage(Node linkage) {}
     }
 
+    /**
+     * The type Value iterator.
+     */
     final class ValueIterator extends HashIterator implements Iterator<V> {
         public V next() {
             return super.nextValue();
         }
     }
 
+    /**
+     * The type Values.
+     */
     final class Values extends AbstractCollection<V> {
         public void clear() {
             CustomConcurrentHashMap.this.clear();
@@ -2999,9 +4013,23 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         }
     }
 
+    /**
+     * The type Weak key int value node.
+     */
     abstract static class WeakKeyIntValueNode extends WeakKeyNode {
+        /**
+         * The Value.
+         */
         volatile int value;
 
+        /**
+         * Instantiates a new Weak key int value node.
+         *
+         * @param locator the locator
+         * @param key     the key
+         * @param value   the value
+         * @param cchm    the cchm
+         */
         WeakKeyIntValueNode(int locator, Object key, Object value, CustomConcurrentHashMap cchm) {
             super(locator, key, cchm);
             this.value = ((Integer) value).intValue();
@@ -3016,6 +4044,9 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         }
     }
 
+    /**
+     * The type Weak key int value node factory.
+     */
     static final class WeakKeyIntValueNodeFactory implements NodeFactory, Serializable {
         private static final long serialVersionUID = 7249069346764182397L;
 
@@ -3028,10 +4059,26 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         }
     }
 
+    /**
+     * The type Weak key node.
+     */
     abstract static class WeakKeyNode extends WeakReference implements Node {
+        /**
+         * The Cchm.
+         */
         final CustomConcurrentHashMap cchm;
+        /**
+         * The Locator.
+         */
         final int locator;
 
+        /**
+         * Instantiates a new Weak key node.
+         *
+         * @param locator the locator
+         * @param key     the key
+         * @param cchm    the cchm
+         */
         WeakKeyNode(int locator, Object key, CustomConcurrentHashMap cchm) {
             super(key, getReclamationQueue());
             this.locator = locator;
@@ -3050,7 +4097,17 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
 
     // Temporary Unsafe mechanics for preliminary release
 
+    /**
+     * The type Weak key self value node.
+     */
     abstract static class WeakKeySelfValueNode extends WeakKeyNode {
+        /**
+         * Instantiates a new Weak key self value node.
+         *
+         * @param locator the locator
+         * @param key     the key
+         * @param cchm    the cchm
+         */
         WeakKeySelfValueNode(int locator, Object key, CustomConcurrentHashMap cchm) {
             super(locator, key, cchm);
         }
@@ -3062,6 +4119,9 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         public final void setValue(Object value) {}
     }
 
+    /**
+     * The type Weak key self value node factory.
+     */
     static final class WeakKeySelfValueNodeFactory implements NodeFactory, Serializable {
         private static final long serialVersionUID = 7249069346764182397L;
 
@@ -3074,9 +4134,23 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         }
     }
 
+    /**
+     * The type Weak key soft value node.
+     */
     abstract static class WeakKeySoftValueNode extends WeakKeyNode {
+        /**
+         * The Value ref.
+         */
         volatile EmbeddedSoftReference valueRef;
 
+        /**
+         * Instantiates a new Weak key soft value node.
+         *
+         * @param locator the locator
+         * @param key     the key
+         * @param value   the value
+         * @param cchm    the cchm
+         */
         WeakKeySoftValueNode(int locator, Object key, Object value, CustomConcurrentHashMap cchm) {
             super(locator, key, cchm);
             if (value != null) {
@@ -3098,6 +4172,9 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         }
     }
 
+    /**
+     * The type Weak key soft value node factory.
+     */
     static final class WeakKeySoftValueNodeFactory implements NodeFactory, Serializable {
         private static final long serialVersionUID = 7249069346764182397L;
 
@@ -3110,9 +4187,23 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         }
     }
 
+    /**
+     * The type Weak key strong value node.
+     */
     abstract static class WeakKeyStrongValueNode extends WeakKeyNode {
+        /**
+         * The Value.
+         */
         volatile Object value;
 
+        /**
+         * Instantiates a new Weak key strong value node.
+         *
+         * @param locator the locator
+         * @param key     the key
+         * @param value   the value
+         * @param cchm    the cchm
+         */
         WeakKeyStrongValueNode(int locator, Object key, Object value, CustomConcurrentHashMap cchm) {
             super(locator, key, cchm);
             this.value = value;
@@ -3127,6 +4218,9 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         }
     }
 
+    /**
+     * The type Weak key strong value node factory.
+     */
     static final class WeakKeyStrongValueNodeFactory implements NodeFactory, Serializable {
         private static final long serialVersionUID = 7249069346764182397L;
 
@@ -3139,9 +4233,23 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         }
     }
 
+    /**
+     * The type Weak key weak value node.
+     */
     abstract static class WeakKeyWeakValueNode extends WeakKeyNode {
+        /**
+         * The Value ref.
+         */
         volatile EmbeddedWeakReference valueRef;
 
+        /**
+         * Instantiates a new Weak key weak value node.
+         *
+         * @param locator the locator
+         * @param key     the key
+         * @param value   the value
+         * @param cchm    the cchm
+         */
         WeakKeyWeakValueNode(int locator, Object key, Object value, CustomConcurrentHashMap cchm) {
             super(locator, key, cchm);
             if (value != null) {
@@ -3163,6 +4271,9 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         }
     }
 
+    /**
+     * The type Weak key weak value node factory.
+     */
     static final class WeakKeyWeakValueNodeFactory implements NodeFactory, Serializable {
         private static final long serialVersionUID = 7249069346764182397L;
 
@@ -3175,11 +4286,26 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
         }
     }
 
+    /**
+     * The type Write through entry.
+     */
     final class WriteThroughEntry implements Map.Entry<K, V>, Serializable {
         private static final long serialVersionUID = 7249069346764182397L;
+        /**
+         * The Key.
+         */
         final K key;
+        /**
+         * The Value.
+         */
         V value;
 
+        /**
+         * Instantiates a new Write through entry.
+         *
+         * @param key   the key
+         * @param value the value
+         */
         WriteThroughEntry(K key, V value) {
             this.key = key;
             this.value = value;

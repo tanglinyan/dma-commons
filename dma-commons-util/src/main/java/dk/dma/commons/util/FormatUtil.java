@@ -17,11 +17,19 @@ package dk.dma.commons.util;
 import java.util.Locale;
 
 /**
- * 
+ * The type Format util.
+ *
  * @author Kasper Nielsen
  */
 public class FormatUtil {
 
+    /**
+     * Human readable byte count string.
+     *
+     * @param bytes the bytes
+     * @param si    the si
+     * @return the string
+     */
     public static String humanReadableByteCount(long bytes, boolean si) {
         int unit = si ? 1000 : 1024;
         if (bytes < unit) {
@@ -32,6 +40,12 @@ public class FormatUtil {
         return String.format("%.1f %sB", bytes / Math.pow(unit, exp), pre);
     }
 
+    /**
+     * Lat to printable string.
+     *
+     * @param lat the lat
+     * @return the string
+     */
     public static String latToPrintable(double lat) {
         String ns = "N";
         if (lat < 0) {
@@ -48,6 +62,12 @@ public class FormatUtil {
         return String.format(Locale.US, "%02d %s%s", hours, latStr, ns);
     }
 
+    /**
+     * Lon to printable string.
+     *
+     * @param lon the lon
+     * @return the string
+     */
     public static String lonToPrintable(double lon) {
         String ns = "E";
         if (lon < 0) {

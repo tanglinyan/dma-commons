@@ -23,12 +23,15 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 
+ * The type Json object.
+ *
  * @author Kasper Nielsen
  */
 public final class JSONObject {
 
-    /** The Unix line separator. */
+    /**
+     * The Unix line separator.
+     */
     public static final String UNIX_LINE_SEPARATOR = "\n";
 
     private final List<Map.Entry<String, Object>> elements = new ArrayList<>();
@@ -38,11 +41,25 @@ public final class JSONObject {
         elements.add(new AbstractMap.SimpleImmutableEntry(requireNonNull(name), o));
     }
 
+    /**
+     * Add element json object.
+     *
+     * @param name  the name
+     * @param value the value
+     * @return the json object
+     */
     public JSONObject addElement(String name, Object value) {
         add(name, value);
         return this;
     }
 
+    /**
+     * Add list json object.
+     *
+     * @param name   the name
+     * @param values the values
+     * @return the json object
+     */
     public JSONObject addList(String name, Object... values) {
         add(name, Arrays.asList(values));
         return this;
@@ -56,28 +73,73 @@ public final class JSONObject {
         }
     }
 
+    /**
+     * New child json object.
+     *
+     * @param name the name
+     * @return the json object
+     */
     public JSONObject newChild(String name) {
         JSONObject o2 = new JSONObject();
         add(name, o2);
         return o2;
     }
 
+    /**
+     * Single json object.
+     *
+     * @param name  the name
+     * @param value the value
+     * @return the json object
+     */
     public static JSONObject single(String name, Object value) {
         return new JSONObject().addElement(name, value);
     }
 
+    /**
+     * Single json object.
+     *
+     * @param name   the name
+     * @param value  the value
+     * @param name1  the name 1
+     * @param value1 the value 1
+     * @return the json object
+     */
     public static JSONObject single(String name, Object value, String name1, Object value1) {
         return new JSONObject().addElement(name, value).addElement(name1, value1);
     }
 
+    /**
+     * Single json object.
+     *
+     * @param name   the name
+     * @param value  the value
+     * @param name1  the name 1
+     * @param value1 the value 1
+     * @param name2  the name 2
+     * @param value2 the value 2
+     * @return the json object
+     */
     public static JSONObject single(String name, Object value, String name1, Object value1, String name2, Object value2) {
         return new JSONObject().addElement(name, value).addElement(name1, value1).addElement(name2, value2);
     }
 
+    /**
+     * Single list json object.
+     *
+     * @param name  the name
+     * @param value the value
+     * @return the json object
+     */
     public static JSONObject singleList(String name, Object... value) {
         return new JSONObject().addElement(name, Arrays.asList(value));
     }
 
+    /**
+     * The entry point of application.
+     *
+     * @param args the input arguments
+     */
     public static void main(String[] args) {
         singleList("sources", "AisD", "Helcom").toString();
         System.out.println(single("sources", "AisD", "23234", 1322));
@@ -118,11 +180,9 @@ public final class JSONObject {
 
     /**
      * Adds the specified count of spaces to the specified string builder.
-     * 
-     * @param sb
-     *            the string builder to add to
-     * @param count
-     *            the number of spaces to add
+     *
+     * @param sb    the string builder to add to
+     * @param count the number of spaces to add
      * @return the specified string builder
      */
     public static StringBuilder spaces(StringBuilder sb, int count) {

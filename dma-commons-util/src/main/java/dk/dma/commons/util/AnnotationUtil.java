@@ -21,11 +21,20 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * 
+ * The type Annotation util.
+ *
  * @author Kasper Nielsen
  */
 public class AnnotationUtil {
 
+    /**
+     * Gets annotated fields.
+     *
+     * @param <T>        the type parameter
+     * @param type       the type
+     * @param annotation the annotation
+     * @return the annotated fields
+     */
     public static <T extends Annotation> Map<Field, T> getAnnotatedFields(Class<?> type, Class<T> annotation) {
         final Map<Field, T> fields = new HashMap<>();
         while (type != Object.class) {
@@ -39,6 +48,14 @@ public class AnnotationUtil {
         return fields;
     }
 
+    /**
+     * Gets annotated methods.
+     *
+     * @param <T>        the type parameter
+     * @param type       the type
+     * @param annotation the annotation
+     * @return the annotated methods
+     */
     public static <T extends Annotation> Map<Method, T> getAnnotatedMethods(Class<?> type, Class<T> annotation) {
         final Map<Method, T> methods = new HashMap<>();
         while (type != Object.class) {

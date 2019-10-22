@@ -24,12 +24,15 @@ import java.nio.charset.StandardCharsets;
 /**
  * <p>
  * Note this stream should also
- * 
+ *
+ * @param <T> the type parameter
  * @author Kasper Nielsen
  */
 public abstract class OutputStreamSink<T> {
 
-    /** A sink that will ignore any input. */
+    /**
+     * A sink that will ignore any input.
+     */
     public static final OutputStreamSink<Object> IGNORE = new OutputStreamSink<Object>() {
 
         /** {@inheritDoc} */
@@ -37,17 +40,49 @@ public abstract class OutputStreamSink<T> {
         public void process(OutputStream os, Object msg, long count) {}
     };
 
+    /**
+     * The constant TO_STRING_US_ASCII_SINK.
+     */
     public static final OutputStreamSink<Object> TO_STRING_US_ASCII_SINK = toStringSink(StandardCharsets.US_ASCII);
 
+    /**
+     * The constant TO_STRING_UTF8_SINK.
+     */
     public static final OutputStreamSink<Object> TO_STRING_UTF8_SINK = toStringSink(StandardCharsets.UTF_8);
 
+    /**
+     * Footer.
+     *
+     * @param stream the stream
+     * @param count  the count
+     * @throws IOException the io exception
+     */
     public void footer(OutputStream stream, long count) throws IOException {}
 
+    /**
+     * Process.
+     *
+     * @param stream  the stream
+     * @param message the message
+     * @param count   the count
+     * @throws IOException the io exception
+     */
     public abstract void process(OutputStream stream, T message, long count) throws IOException;
 
+    /**
+     * Header.
+     *
+     * @param stream the stream
+     * @throws IOException the io exception
+     */
     public void header(OutputStream stream) throws IOException {}
 
-    // Returns a new sink that closes the stream
+    /**
+     * Close when footer written output stream sink.
+     *
+     * @return the output stream sink
+     */
+// Returns a new sink that closes the stream
     public final OutputStreamSink<T> closeWhenFooterWritten() {
         return new DelegatingOutputStreamSink<T>(this) {
             @Override
@@ -61,6 +96,11 @@ public abstract class OutputStreamSink<T> {
         };
     }
 
+    /**
+     * New flush every time sink output stream sink.
+     *
+     * @return the output stream sink
+     */
     public final OutputStreamSink<T> newFlushEveryTimeSink() {
         return new OutputStreamSink<T>() {
             @Override
@@ -83,6 +123,13 @@ public abstract class OutputStreamSink<T> {
         };
     }
 
+    /**
+     * Write all.
+     *
+     * @param iterable the iterable
+     * @param os       the os
+     * @throws IOException the io exception
+     */
     public final void writeAll(Iterable<T> iterable, OutputStream os) throws IOException {
         header(os);
         long count = 0;
@@ -92,6 +139,13 @@ public abstract class OutputStreamSink<T> {
         footer(os, count);
     }
 
+    /**
+     * Write footer output stream sink.
+     *
+     * @param footer  the footer
+     * @param charset the charset
+     * @return the output stream sink
+     */
     protected final OutputStreamSink<T> writeFooter(final String footer, final Charset charset) {
         requireNonNull(footer);
         requireNonNull(charset);
@@ -104,10 +158,23 @@ public abstract class OutputStreamSink<T> {
         };
     }
 
+    /**
+     * Write footer ascii output stream sink.
+     *
+     * @param footer the footer
+     * @return the output stream sink
+     */
     protected final OutputStreamSink<T> writeFooterAscii(String footer) {
         return writeFooter(footer, StandardCharsets.US_ASCII);
     }
 
+    /**
+     * With fixed header output stream sink.
+     *
+     * @param header  the header
+     * @param charset the charset
+     * @return the output stream sink
+     */
     protected final OutputStreamSink<T> withFixedHeader(final String header, final Charset charset) {
         requireNonNull(header);
         requireNonNull(charset);
@@ -120,16 +187,22 @@ public abstract class OutputStreamSink<T> {
         };
     }
 
+    /**
+     * Write header ascii output stream sink.
+     *
+     * @param header the header
+     * @return the output stream sink
+     */
     protected final OutputStreamSink<T> writeHeaderAscii(String header) {
         return withFixedHeader(header, StandardCharsets.US_ASCII);
     }
 
     /**
-     * 
-     * 
-     * @param charset
-     *            the charset that should be used for encoding
-     * @return
+     * To string sink output stream sink.
+     *
+     * @param <T>     the type parameter
+     * @param charset the charset that should be used for encoding
+     * @return output stream sink
      */
     public static <T> OutputStreamSink<T> toStringSink(final Charset charset) {
         requireNonNull(charset);
@@ -144,9 +217,19 @@ public abstract class OutputStreamSink<T> {
         };
     }
 
+    /**
+     * The type Delegating output stream sink.
+     *
+     * @param <T> the type parameter
+     */
     static class DelegatingOutputStreamSink<T> extends OutputStreamSink<T> {
         private final OutputStreamSink<T> oss;
 
+        /**
+         * Instantiates a new Delegating output stream sink.
+         *
+         * @param oss the oss
+         */
         DelegatingOutputStreamSink(OutputStreamSink<T> oss) {
             this.oss = requireNonNull(oss);
         }

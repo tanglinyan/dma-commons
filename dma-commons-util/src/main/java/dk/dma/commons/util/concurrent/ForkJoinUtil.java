@@ -22,7 +22,8 @@ import java.util.function.Consumer;
 import dk.dma.enav.util.function.EConsumer;
 
 /**
- * 
+ * The type Fork join util.
+ *
  * @author Kasper Nielsen
  */
 @SuppressWarnings("serial")
@@ -30,13 +31,11 @@ public class ForkJoinUtil {
 
     /**
      * Invokes the consumer for each element in the specified array.
-     * 
-     * @param array
-     *            the array to consume
-     * @param consumer
-     *            the consumer of each element
-     * @throws NullPointerException
-     *             if the array or consumer is null
+     *
+     * @param <E>      the type parameter
+     * @param array    the array to consume
+     * @param consumer the consumer of each element
+     * @throws NullPointerException if the array or consumer is null
      */
     public static <E> void forEach(E[] array, Consumer<E> consumer) {
         requireNonNull(array, "array is null");
@@ -47,13 +46,11 @@ public class ForkJoinUtil {
 
     /**
      * Invokes the consumer for each element in the specified array.
-     * 
-     * @param array
-     *            the array to consume
-     * @param consumer
-     *            the consumer of each element
-     * @throws NullPointerException
-     *             if the array or consumer is null
+     *
+     * @param <E>      the type parameter
+     * @param array    the array to consume
+     * @param consumer the consumer of each element
+     * @throws Exception the exception
      */
     public static <E> void forEach(E[] array, EConsumer<E> consumer) throws Exception {
         requireNonNull(array, "array is null");
@@ -65,7 +62,9 @@ public class ForkJoinUtil {
         }
     }
 
-    /** Invokes the specified consumer for each element in an array. */
+    /**
+     * Invokes the specified consumer for each element in an array.  @param <E>  the type parameter
+     */
     static class ForEach<E> extends CountedCompleter<Void> {
 
         /** The array of elements to process */
@@ -80,6 +79,15 @@ public class ForkJoinUtil {
         /** The consumer to consume each element. */
         private final Consumer<E> op;
 
+        /**
+         * Instantiates a new For each.
+         *
+         * @param p     the p
+         * @param op    the op
+         * @param array the array
+         * @param lo    the lo
+         * @param hi    the hi
+         */
         ForEach(CountedCompleter<?> p, Consumer<E> op, E[] array, int lo, int hi) {
             super(p);
             this.array = array;
@@ -104,7 +112,9 @@ public class ForkJoinUtil {
         }
     }
 
-    /** Invokes the specified consumer for each element in an array. */
+    /**
+     * Invokes the specified consumer for each element in an array.  @param <E>  the type parameter
+     */
     static class ForEachE<E> extends CountedCompleter<Void> {
 
         /** The array of elements to process */
@@ -119,6 +129,15 @@ public class ForkJoinUtil {
         /** The consumer to consume each element. */
         private final EConsumer<E> op;
 
+        /**
+         * Instantiates a new For each e.
+         *
+         * @param p     the p
+         * @param op    the op
+         * @param array the array
+         * @param lo    the lo
+         * @param hi    the hi
+         */
         ForEachE(CountedCompleter<?> p, EConsumer<E> op, E[] array, int lo, int hi) {
             super(p);
             this.array = array;
@@ -149,8 +168,15 @@ public class ForkJoinUtil {
         }
     }
 
-    /** A hack to find the original checked exception that was thrown */
+    /**
+     * A hack to find the original checked exception that was thrown
+     */
     static class InnerRuntimeException extends RuntimeException {
+        /**
+         * Instantiates a new Inner runtime exception.
+         *
+         * @param e the e
+         */
         InnerRuntimeException(Exception e) {
             super(e);
         }

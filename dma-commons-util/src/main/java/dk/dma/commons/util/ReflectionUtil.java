@@ -17,11 +17,20 @@ package dk.dma.commons.util;
 import java.lang.reflect.Field;
 
 /**
- * 
+ * The type Reflection util.
+ *
  * @author Kasper Nielsen
  */
 public class ReflectionUtil {
 
+    /**
+     * Gets declared field.
+     *
+     * @param type the type
+     * @param name the name
+     * @return the declared field
+     * @throws NoSuchFieldException the no such field exception
+     */
     public static Field getDeclaredField(Class<?> type, String name) throws NoSuchFieldException {
         while (type != Object.class) {
             for (Field field : type.getDeclaredFields()) {

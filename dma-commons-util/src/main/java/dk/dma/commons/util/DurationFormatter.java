@@ -21,7 +21,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * A small utility class for formatting time durations. TimeFormatter instances are generally safe for access by
  * multiple threads.
- * 
+ *
  * @author Kasper Nielsen
  */
 public class DurationFormatter implements Serializable {
@@ -59,20 +59,25 @@ public class DurationFormatter implements Serializable {
             "minutes", "hours", "days" };
 
     // We use us instead of the more correct u00b5s because we only want to output ASCII characters
-    /** The default SI symbols. */
+    /**
+     * The default SI symbols.
+     */
     static final String[] SI_SYMBOL = new String[] { "ns", "us", "ms", "s", "min", "h", "d" };
 
-    /** The default time formatter. */
+    /**
+     * The default time formatter.
+     */
     public static final DurationFormatter DEFAULT = new DefaultFormatter();
 
-    /** A <tt>TimeFormatter</tt> that will format a duration in the same way as the unix 'uptime' command. */
+    /**
+     * A <tt>TimeFormatter</tt> that will format a duration in the same way as the unix 'uptime' command.
+     */
     public static final DurationFormatter UPTIME = new UptimeFormatter();
 
     /**
      * Formats the specified time parameter.
-     * 
-     * @param nano
-     *            the nanoseconds part
+     *
+     * @param nano the nanoseconds part
      * @return the formatted string
      */
     protected String doFormat(int nano) {
@@ -81,12 +86,9 @@ public class DurationFormatter implements Serializable {
 
     /**
      * Formats the specified time parameters.
-     * 
-     * @param micros
-     *            the microseconds part
-     * @param nano
-     *            the nanoseconds part
-     * 
+     *
+     * @param micros the microseconds part
+     * @param nano   the nanoseconds part
      * @return the formatted string
      */
     protected String doFormat(int micros, int nano) {
@@ -95,14 +97,10 @@ public class DurationFormatter implements Serializable {
 
     /**
      * Formats the specified time parameters.
-     * 
-     * @param millies
-     *            the milliseconds part
-     * @param micros
-     *            the microseconds part
-     * @param nano
-     *            the nanoseconds part
-     * 
+     *
+     * @param millies the milliseconds part
+     * @param micros  the microseconds part
+     * @param nano    the nanoseconds part
      * @return the formatted string
      */
     protected String doFormat(int millies, int micros, int nano) {
@@ -111,16 +109,11 @@ public class DurationFormatter implements Serializable {
 
     /**
      * Formats the specified time parameters.
-     * 
-     * @param seconds
-     *            the seconds part
-     * @param millies
-     *            the milliseconds part
-     * @param micros
-     *            the microseconds part
-     * @param nano
-     *            the nanoseconds part
-     * 
+     *
+     * @param seconds the seconds part
+     * @param millies the milliseconds part
+     * @param micros  the microseconds part
+     * @param nano    the nanoseconds part
      * @return the formatted string
      */
     protected String doFormat(int seconds, int millies, int micros, int nano) {
@@ -129,18 +122,12 @@ public class DurationFormatter implements Serializable {
 
     /**
      * Formats the specified time parameters.
-     * 
-     * @param minutes
-     *            the minutes part
-     * @param seconds
-     *            the seconds part
-     * @param millies
-     *            the milliseconds part
-     * @param micros
-     *            the microseconds part
-     * @param nano
-     *            the nanoseconds part
-     * 
+     *
+     * @param minutes the minutes part
+     * @param seconds the seconds part
+     * @param millies the milliseconds part
+     * @param micros  the microseconds part
+     * @param nano    the nanoseconds part
      * @return the formatted string
      */
     protected String doFormat(int minutes, int seconds, int millies, int micros, int nano) {
@@ -149,20 +136,13 @@ public class DurationFormatter implements Serializable {
 
     /**
      * Formats the specified time parameters.
-     * 
-     * @param hours
-     *            the hours part
-     * @param minutes
-     *            the minutes part
-     * @param seconds
-     *            the seconds part
-     * @param millies
-     *            the milliseconds part
-     * @param micros
-     *            the microseconds part
-     * @param nano
-     *            the nanoseconds part
-     * 
+     *
+     * @param hours   the hours part
+     * @param minutes the minutes part
+     * @param seconds the seconds part
+     * @param millies the milliseconds part
+     * @param micros  the microseconds part
+     * @param nano    the nanoseconds part
      * @return the formatted string
      */
     protected String doFormat(int hours, int minutes, int seconds, int millies, int micros, int nano) {
@@ -171,22 +151,14 @@ public class DurationFormatter implements Serializable {
 
     /**
      * Formats the specified time parameters.
-     * 
-     * @param days
-     *            the days part
-     * @param hours
-     *            the hours part
-     * @param minutes
-     *            the minutes part
-     * @param seconds
-     *            the seconds part
-     * @param millies
-     *            the milliseconds part
-     * @param micros
-     *            the microseconds part
-     * @param nano
-     *            the nanoseconds part
-     * 
+     *
+     * @param days    the days part
+     * @param hours   the hours part
+     * @param minutes the minutes part
+     * @param seconds the seconds part
+     * @param millies the milliseconds part
+     * @param micros  the microseconds part
+     * @param nano    the nanoseconds part
      * @return the formatted string
      */
     protected String doFormat(int days, int hours, int minutes, int seconds, int millies, int micros, int nano) {
@@ -196,11 +168,9 @@ public class DurationFormatter implements Serializable {
 
     /**
      * Formats the specified time to produce a string.
-     * 
-     * @param time
-     *            the amount of time
-     * @param unit
-     *            the unit of the specified time
+     *
+     * @param time the amount of time
+     * @param unit the unit of the specified time
      * @return the formatting string
      */
     public String format(long time, TimeUnit unit) {
@@ -209,9 +179,8 @@ public class DurationFormatter implements Serializable {
 
     /**
      * Formats the specified time to produce a string.
-     * 
-     * @param millies
-     *            the amount of time in milliseconds
+     *
+     * @param millies the amount of time in milliseconds
      * @return the formatting string
      */
     public String formatMillies(long millies) {
@@ -220,9 +189,8 @@ public class DurationFormatter implements Serializable {
 
     /**
      * Formats the specified time to produce a string.
-     * 
-     * @param nanos
-     *            the amount of time in nanos
+     *
+     * @param nanos the amount of time in nanos
      * @return the formatting string
      */
     public String formatNanos(long nanos) {
@@ -249,11 +217,9 @@ public class DurationFormatter implements Serializable {
     /**
      * Returns name of the specified time unit. For example getName(1, TimeUnit.seconds) will return 'second' while
      * invoking getName(10, TimeUnit.seconds) will return 'seconds'.
-     * 
-     * @param value
-     *            the amount of time
-     * @param unit
-     *            the time unit
+     *
+     * @param value the amount of time
+     * @param unit  the time unit
      * @return the name of the specified time unit
      */
     protected String getName(long value, TimeUnit unit) {
@@ -263,9 +229,8 @@ public class DurationFormatter implements Serializable {
     /**
      * Returns the symbol of the specified time unit. The default implementation returns the standard SI symbol for the
      * specified time unit.
-     * 
-     * @param unit
-     *            the time unit for which the symbol should be returned
+     *
+     * @param unit the time unit for which the symbol should be returned
      * @return the symbol of the specified time unit
      */
     protected String getSymbol(TimeUnit unit) {
@@ -274,11 +239,9 @@ public class DurationFormatter implements Serializable {
 
     /**
      * Formats the specified values into a <tt>integer-part{decimal separator}decimal-part</tt> format.
-     * 
-     * @param value
-     *            the integer part
-     * @param decimal
-     *            the decimal part
+     *
+     * @param value   the integer part
+     * @param decimal the decimal part
      * @return the numbers formatted
      */
     protected String format_000(int value, int decimal) {
@@ -301,7 +264,9 @@ public class DurationFormatter implements Serializable {
         return Integer.toString(value);
     }
 
-    /** The default time formatter. */
+    /**
+     * The default time formatter.
+     */
     static class DefaultFormatter extends UptimeFormatter {
         /** serialVersionUID */
         private static final long serialVersionUID = -7573098942957592504L;
@@ -331,7 +296,9 @@ public class DurationFormatter implements Serializable {
         }
     }
 
-    /** Time formatter equivalent to *nix 'uptime' command. */
+    /**
+     * Time formatter equivalent to *nix 'uptime' command.
+     */
     static class UptimeFormatter extends DurationFormatter {
         /** serialVersionUID */
         private static final long serialVersionUID = 3440524099536856811L;

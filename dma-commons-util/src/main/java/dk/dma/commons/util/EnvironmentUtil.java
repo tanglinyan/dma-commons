@@ -30,6 +30,7 @@ public final class EnvironmentUtil {
 
     /**
      * Get the value of an OS environment variable. Issue a LOG error if the variable is blank or does not exist.
+     *
      * @param envVarName The name of the environment variable to lookup.
      * @return the value of the environment variable; or null if value not set.
      */

@@ -23,7 +23,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Wraps another input stream, counting the number of bytes written.
- * 
+ *
  * @author Kasper Nielsen
  */
 public final class CountingInputStream extends FilterInputStream {
@@ -31,22 +31,29 @@ public final class CountingInputStream extends FilterInputStream {
     /** The counter. */
     private final AtomicLong counter;
 
+    /**
+     * Instantiates a new Counting input stream.
+     *
+     * @param in the in
+     */
     public CountingInputStream(InputStream in) {
         this(in, new AtomicLong());
     }
 
     /**
      * Wraps another input stream, counting the number of bytes read.
-     * 
-     * @param in
-     *            the input stream to be wrapped
+     *
+     * @param in      the input stream to be wrapped
+     * @param counter the counter
      */
     public CountingInputStream(InputStream in, AtomicLong counter) {
         super(in);
         this.counter = requireNonNull(counter);
     }
 
-    /** Returns the number of bytes read. */
+    /**
+     * Returns the number of bytes read.  @return the count
+     */
     public long getCount() {
         return counter.get();
     }

@@ -26,15 +26,23 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * A single thread cleaning filters.
- * 
+ *
  * @author Kasper Nielsen
  */
 class Cleaner extends Thread {
 
+    /**
+     * The Set.
+     */
     static final Set<Runnable> SET = Collections.newSetFromMap(new WeakHashMap<Runnable, Boolean>());
 
     private static ScheduledExecutorService ses;
 
+    /**
+     * Add.
+     *
+     * @param runnable the runnable
+     */
     static synchronized void add(Runnable runnable) {
         SET.add(requireNonNull(runnable));
 

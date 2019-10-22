@@ -16,7 +16,7 @@ package dk.dma.commons.util;
 
 /**
  * Various {code int} utility methods.
- * 
+ *
  * @author Kasper Nielsen
  */
 public class LongUtil {
@@ -26,9 +26,9 @@ public class LongUtil {
      * specified long to an int.
      * <p>
      * No check of whether the specified long is positive is made.
-     * 
-     * @param value
-     *            a positive long value
+     *
+     * @param x the x
+     * @param y the y
      * @return a saturated cast of the specified long
      */
     public static long saturatedAdd(long x, long y) {

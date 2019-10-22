@@ -39,15 +39,30 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * 
+ * The type Io util.
+ *
  * @author Kasper Nielsen
  */
 public class IoUtil {
 
+    /**
+     * Write ascii.
+     *
+     * @param ascii the ascii
+     * @param os    the os
+     * @throws IOException the io exception
+     */
     public static void writeAscii(CharSequence ascii, OutputStream os) throws IOException {
         os.write(ascii.toString().getBytes(StandardCharsets.US_ASCII));
     }
 
+    /**
+     * Recursive size of long.
+     *
+     * @param p the p
+     * @return the long
+     * @throws IOException the io exception
+     */
     public static long recursiveSizeOf(Path p) throws IOException {
         final AtomicLong size = new AtomicLong();
         Files.walkFileTree(p, new SimpleFileVisitor<Path>() {
@@ -60,6 +75,14 @@ public class IoUtil {
         return size.get();
     }
 
+    /**
+     * Read object object.
+     *
+     * @param dis the dis
+     * @return the object
+     * @throws IOException            the io exception
+     * @throws ClassNotFoundException the class not found exception
+     */
     public static Object readObject(DataInputStream dis) throws IOException, ClassNotFoundException {
         int size = dis.readInt();
         byte[] input = new byte[size];
@@ -67,12 +90,27 @@ public class IoUtil {
         return readObject(input);
     }
 
+    /**
+     * Read object object.
+     *
+     * @param input the input
+     * @return the object
+     * @throws IOException            the io exception
+     * @throws ClassNotFoundException the class not found exception
+     */
     public static Object readObject(byte[] input) throws IOException, ClassNotFoundException {
         ByteArrayInputStream bin = new ByteArrayInputStream(input);
         ObjectInputStream in = new ObjectInputStream(new BufferedInputStream(bin));
         return in.readObject();
     }
 
+    /**
+     * Write object.
+     *
+     * @param dos the dos
+     * @param o   the o
+     * @throws IOException the io exception
+     */
     public static void writeObject(DataOutputStream dos, Object o) throws IOException {
         ByteArrayOutputStream bout = new ByteArrayOutputStream(20000);
         try (ObjectOutputStream out = new ObjectOutputStream(new BufferedOutputStream(bout));) {
@@ -83,6 +121,13 @@ public class IoUtil {
         dos.flush();
     }
 
+    /**
+     * Add timestamp path.
+     *
+     * @param base the base
+     * @param unit the unit
+     * @return the path
+     */
     public static Path addTimestamp(Path base, TimeUnit unit) {
         long now = System.currentTimeMillis();
         String filename = base.getFileName().toString();
@@ -96,6 +141,13 @@ public class IoUtil {
         return base.getParent().resolve(filename);
     }
 
+    /**
+     * Find latest modified path.
+     *
+     * @param i the
+     * @return the path
+     * @throws IOException the io exception
+     */
     public static Path findLatestModified(Iterable<Path> i) throws IOException {
         Path latest = null;
         FileTime latestTime = null;
@@ -114,6 +166,13 @@ public class IoUtil {
         return latest;
     }
 
+    /**
+     * Add time stamp get post fix string.
+     *
+     * @param now  the now
+     * @param unit the unit
+     * @return the string
+     */
     public static String addTimeStampGetPostFix(Date now, TimeUnit unit) {
         if (unit == TimeUnit.MINUTES) {
             // does not handle daylight saving properties
@@ -129,6 +188,12 @@ public class IoUtil {
         }
     }
 
+    /**
+     * Not closeable output stream.
+     *
+     * @param os the os
+     * @return the output stream
+     */
     public static OutputStream notCloseable(OutputStream os) {
         return new FilterOutputStream(os) {
             /** {@inheritDoc} */
@@ -139,6 +204,12 @@ public class IoUtil {
         };
     }
 
+    /**
+     * Validate folder exist.
+     *
+     * @param parameterName the parameter name
+     * @param folder        the folder
+     */
     public static final void validateFolderExist(String parameterName, File folder) {
         if (!folder.exists()) {
             System.err.println(parameterName + " folder does not exist, " + parameterName + " = " + folder);

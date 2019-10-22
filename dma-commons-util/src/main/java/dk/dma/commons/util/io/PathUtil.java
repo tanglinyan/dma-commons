@@ -18,7 +18,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 /**
- * 
+ * The type Path util.
+ *
  * @author Kasper Nielsen
  */
 public class PathUtil {
@@ -26,9 +27,8 @@ public class PathUtil {
     /**
      * If the specified path does not exist. Returns the specified path. Otherwise returns a unique path similar to the
      * specified path.
-     * 
-     * @param path
-     *            the patch to check
+     *
+     * @param path the patch to check
      * @return a unique path
      */
     public static Path findUnique(Path path) {

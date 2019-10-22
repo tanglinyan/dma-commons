@@ -21,11 +21,20 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Predicate;
 
 /**
- * 
+ * The type Iterables.
+ *
  * @author Kasper Nielsen
  */
 public class Iterables {
 
+    /**
+     * Counting iterable.
+     *
+     * @param <T>      the type parameter
+     * @param iterable the iterable
+     * @param counter  the counter
+     * @return the iterable
+     */
     public static <T> Iterable<T> counting(final Iterable<T> iterable, final AtomicLong counter) {
         requireNonNull(iterable);
         requireNonNull(counter);
@@ -36,6 +45,14 @@ public class Iterables {
         };
     }
 
+    /**
+     * Filter iterable.
+     *
+     * @param <T>        the type parameter
+     * @param unfiltered the unfiltered
+     * @param predicate  the predicate
+     * @return the iterable
+     */
     public static <T> Iterable<T> filter(final Iterable<T> unfiltered, final Predicate<? super T> predicate) {
         requireNonNull(unfiltered);
         requireNonNull(predicate);
