@@ -36,6 +36,11 @@ public class OneInstanceGuard {
     private FileLock lock;
     private boolean alreadyRunning;
 
+    /**
+     * Instantiates a new One instance guard.
+     *
+     * @param lockFileName the lock file name
+     */
     public OneInstanceGuard(String lockFileName) {
         lockFile = new File(lockFileName);
         if (lockFile.exists()) {
@@ -66,6 +71,9 @@ public class OneInstanceGuard {
 
     }
 
+    /**
+     * Unlock file.
+     */
     public void unlockFile() {
         // release and delete file lock
         try {
@@ -79,14 +87,27 @@ public class OneInstanceGuard {
         }
     }
 
+    /**
+     * Is already running boolean.
+     *
+     * @return the boolean
+     */
     public boolean isAlreadyRunning() {
         return alreadyRunning;
     }
 
+    /**
+     * The type Shutdown hook.
+     */
     static class ShutdownHook extends Thread {
 
         private OneInstanceGuard guard;
 
+        /**
+         * Instantiates a new Shutdown hook.
+         *
+         * @param guard the guard
+         */
         ShutdownHook(OneInstanceGuard guard) {
             setDaemon(true);
             this.guard = guard;

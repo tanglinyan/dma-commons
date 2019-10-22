@@ -34,10 +34,14 @@ import dk.dma.commons.util.io.IoUtil;
 import dk.dma.commons.util.io.PathUtil;
 
 /**
- * 
+ * The type Rolling output stream.
+ *
  * @author Kasper Nielsen
  */
 class RollingOutputStream extends OutputStream {
+    /**
+     * The Log.
+     */
     static final Logger LOG = LoggerFactory.getLogger(RollingOutputStream.class);
 
     /** The current output stream we are writing to. */
@@ -51,10 +55,14 @@ class RollingOutputStream extends OutputStream {
     /** The output stream that should be presented to users (cannot be closed). */
     private final OutputStream publicStream = IoUtil.notCloseable(this);
 
-    /** The total number of bytes that has been written. */
+    /**
+     * The total number of bytes that has been written.
+     */
     final AtomicLong totalWritten = new AtomicLong();
 
-    /** The number of bytes that has been written to the current file. */
+    /**
+     * The number of bytes that has been written to the current file.
+     */
     final AtomicLong written = new AtomicLong();
 
     /** {@inheritDoc} */
@@ -82,7 +90,7 @@ class RollingOutputStream extends OutputStream {
 
     /**
      * Returns the number bytes written to the current file that is open.
-     * 
+     *
      * @return the number bytes written to the current file that is open
      */
     public long getCurrentFileBytesWritten() {
@@ -91,7 +99,7 @@ class RollingOutputStream extends OutputStream {
 
     /**
      * Returns an output stream that cannot be closed.
-     * 
+     *
      * @return an output stream that cannot be closed
      */
     public OutputStream getPublicStream() {
@@ -100,7 +108,7 @@ class RollingOutputStream extends OutputStream {
 
     /**
      * Returns the total number of bytes written.
-     * 
+     *
      * @return the total number of bytes written
      */
     public long getTotalBytesWritten() {
@@ -140,10 +148,9 @@ class RollingOutputStream extends OutputStream {
 
     /**
      * Closes (if open) the current output file. And sets the name of the file that should be openen next
-     * 
-     * @param nextPath
-     *            the name of the output file (excluding .zip)
-     * @throws IOException
+     *
+     * @param nextPath the name of the output file (excluding .zip)
+     * @throws IOException the io exception
      */
     public void roll(Path nextPath) throws IOException {
         close();

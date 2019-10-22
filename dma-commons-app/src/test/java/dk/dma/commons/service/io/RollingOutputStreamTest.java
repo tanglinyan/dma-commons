@@ -26,11 +26,17 @@ import java.nio.file.Paths;
 import org.junit.Test;
 
 /**
- * 
+ * The type Rolling output stream test.
+ *
  * @author Kasper Nielsen
  */
 public class RollingOutputStreamTest {
 
+    /**
+     * Test single file.
+     *
+     * @throws IOException the io exception
+     */
     @Test
     public void testSingleFile() throws IOException {
         Path p = Files.createTempFile("aaa", "bbb");
@@ -58,6 +64,11 @@ public class RollingOutputStreamTest {
         }
     }
 
+    /**
+     * Test multiple files.
+     *
+     * @throws IOException the io exception
+     */
     @Test
     public void testMultipleFiles() throws IOException {
         Path p1 = Files.createTempFile("aaa", "bbb");

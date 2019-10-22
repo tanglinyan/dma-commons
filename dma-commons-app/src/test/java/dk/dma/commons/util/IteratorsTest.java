@@ -25,10 +25,14 @@ import java.util.List;
 import org.junit.Test;
 
 /**
- * 
+ * The type Iterators test.
+ *
  * @author Kasper Nielsen
  */
 public class IteratorsTest {
+    /**
+     * The Natural int.
+     */
     static final Comparator<Integer> NATURAL_INT = new Comparator<Integer>() {
         @Override
         public int compare(Integer o1, Integer o2) {
@@ -36,6 +40,9 @@ public class IteratorsTest {
         }
     };
 
+    /**
+     * Combine 1.
+     */
     @Test
     public void combine1() {
         List<Integer> l = Arrays.asList(1, 2, 3, 4);
@@ -47,6 +54,9 @@ public class IteratorsTest {
         assertFalse(combine.hasNext());
     }
 
+    /**
+     * Combine 2.
+     */
     @Test
     public void combine2() {
         List<Integer> l1 = Arrays.asList(1, 3);
@@ -59,6 +69,9 @@ public class IteratorsTest {
         assertFalse(combine.hasNext());
     }
 
+    /**
+     * Combine 4.
+     */
     @Test
     public void combine4() {
         List<Integer> l1 = Arrays.asList(1, 4, 8, 9, 19);

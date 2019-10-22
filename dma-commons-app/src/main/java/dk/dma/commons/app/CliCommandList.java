@@ -23,7 +23,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * 
+ * The type Cli command list.
+ *
  * @author Kasper Nielsen
  */
 public class CliCommandList {
@@ -31,12 +32,27 @@ public class CliCommandList {
     private final String name;
     private final Map<String, String> helpText = new LinkedHashMap<>();// keep registration order
     private final Map<String, Command> command = new LinkedHashMap<>();
+    /**
+     * The Cli app name.
+     */
     static final ThreadLocal<String> CLI_APP_NAME = new ThreadLocal<>();
 
+    /**
+     * Instantiates a new Cli command list.
+     *
+     * @param name the name
+     */
     public CliCommandList(String name) {
         this.name = requireNonNull(name);
     }
 
+    /**
+     * Add.
+     *
+     * @param main        the main
+     * @param name        the name
+     * @param description the description
+     */
     public final void add(Class<?> main, String name, String description) {
         final Method m;
         try {
@@ -52,11 +68,24 @@ public class CliCommandList {
         });
     }
 
+    /**
+     * Add.
+     *
+     * @param name        the name
+     * @param description the description
+     * @param cmd         the cmd
+     */
     public final void add(String name, String description, Command cmd) {
         helpText.put(requireNonNull(name), requireNonNull(description));
         command.put(name, requireNonNull(cmd));
     }
 
+    /**
+     * Invoke.
+     *
+     * @param args the args
+     * @throws Exception the exception
+     */
     public final void invoke(String[] args) throws Exception {
         // So we have to write some custom code.
         ArrayList<String> list = new ArrayList<>(Arrays.asList(args));
@@ -97,7 +126,16 @@ public class CliCommandList {
         System.exit(1);
     }
 
+    /**
+     * The type Command.
+     */
     public abstract static class Command {
+        /**
+         * Execute.
+         *
+         * @param args the args
+         * @throws Exception the exception
+         */
         public abstract void execute(String[] args) throws Exception;
     }
 }

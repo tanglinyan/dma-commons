@@ -35,36 +35,75 @@ import dk.dma.commons.service.AbstractBatchedStage;
 import dk.dma.commons.util.io.OutputStreamSink;
 
 /**
- * 
+ * The type Message to file service.
+ *
+ * @param <T> the type parameter
  * @author Kasper Nielsen
  */
 public class MessageToFileService<T> extends AbstractBatchedStage<T> {
 
+    /**
+     * The Log.
+     */
     static final Logger LOG = LoggerFactory.getLogger(MessageToFileService.class);
 
+    /**
+     * The Current path.
+     */
     Path currentPath;
 
+    /**
+     * The Filename.
+     */
     final String filename;
 
+    /**
+     * The Last time.
+     */
     long lastTime = -1;
 
+    /**
+     * The Lock.
+     */
     final ReentrantLock lock = new ReentrantLock();
 
+    /**
+     * The Max size.
+     */
     final long maxSize;
 
+    /**
+     * The Root.
+     */
     final Path root;
 
+    /**
+     * The Ros.
+     */
     final RollingOutputStream ros = new RollingOutputStream();
 
+    /**
+     * The Sdf.
+     */
     final SimpleDateFormat sdf;
 
+    /**
+     * The Sink.
+     */
     final OutputStreamSink<T> sink;
 
+    /**
+     * The Count.
+     */
     long count;
 
     /**
-     * @param queueSize
-     * @param maxBatchSize
+     * Instantiates a new Message to file service.
+     *
+     * @param root     the root
+     * @param filename the filename
+     * @param sink     the sink
+     * @param maxSize  the max size
      */
     MessageToFileService(Path root, String filename, OutputStreamSink<T> sink, long maxSize) {
         super(10000, 100);
@@ -75,6 +114,11 @@ public class MessageToFileService<T> extends AbstractBatchedStage<T> {
         sdf = new SimpleDateFormat(filename);
     }
 
+    /**
+     * Time long.
+     *
+     * @return the long
+     */
     long time() {
         long time = System.currentTimeMillis();
         if (time < lastTime) {
@@ -125,20 +169,25 @@ public class MessageToFileService<T> extends AbstractBatchedStage<T> {
 
     /**
      * Creates a new MessageToFileService.
-     * 
-     * @param root
-     *            the root directory to write to
-     * @param filenamePattern
-     *            the filename pattern
-     * @param sink
-     *            the sink
-     * @return
+     *
+     * @param <T>             the type parameter
+     * @param root            the root directory to write to
+     * @param filenamePattern the filename pattern
+     * @param sink            the sink
+     * @return message to file service
      */
     public static <T> MessageToFileService<T> dateTimeService(Path root, String filenamePattern,
             OutputStreamSink<T> sink) {
         return new MessageToFileService<>(root, validateFilename(root, filenamePattern), sink, Long.MAX_VALUE);
     }
 
+    /**
+     * Validate filename string.
+     *
+     * @param root     the root
+     * @param filename the filename
+     * @return the string
+     */
     static String validateFilename(Path root, String filename) {
         requireNonNull(root, "root is null");
         SimpleDateFormat sdf = new SimpleDateFormat(filename);
@@ -151,13 +200,16 @@ public class MessageToFileService<T> extends AbstractBatchedStage<T> {
      * Starts the flushing thread. We need this situations where we do not have a constant inflow of messages. Since
      * files can only be closed when a new file arrives (see code in {@link #handleMessages(List)}. We need to
      * periodically check, if no messages arrive for a period, if a file should be closed.
-     * 
-     * @return
+     *
+     * @return service service
      */
     public Service startFlushThread() {
         return new FlushThread();
     }
 
+    /**
+     * The type Flush thread.
+     */
     class FlushThread extends AbstractScheduledService {
 
         protected void runOneIteration() throws Exception {

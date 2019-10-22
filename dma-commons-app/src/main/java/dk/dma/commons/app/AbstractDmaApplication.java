@@ -43,24 +43,42 @@ import com.google.inject.name.Names;
 import dk.dma.commons.management.Managements;
 
 /**
- * 
+ * The type Abstract dma application.
+ *
  * @author Kasper Nielsen
  */
 public abstract class AbstractDmaApplication {
 
-    /** The name of the application. */
+    /**
+     * The name of the application.
+     */
     final String applicationName;
 
+    /**
+     * The Injector.
+     */
     volatile Injector injector;
 
     private final List<Module> modules = new ArrayList<>();
 
+    /**
+     * The Services.
+     */
     final CopyOnWriteArrayList<Service> services = new CopyOnWriteArrayList<>();
 
+    /**
+     * The Log.
+     */
     static final Logger LOG = LoggerFactory.getLogger(AbstractDmaApplication.class);
 
+    /**
+     * The Is shutdown.
+     */
     final CountDownLatch isShutdown = new CountDownLatch(1);
 
+    /**
+     * Instantiates a new Abstract dma application.
+     */
     AbstractDmaApplication() {
         String cliName = CliCommandList.CLI_APP_NAME.get();
         applicationName = cliName == null ? getClass().getSimpleName() : cliName;
@@ -69,23 +87,40 @@ public abstract class AbstractDmaApplication {
     /**
      * Clients should use one of {@link AbstractCommandLineTool}, {@link AbstractSwingApplication} or
      * {@link AbstractWebApplication}.
-     * 
-     * @param applicationName
-     *            the name of the application
+     *
+     * @param applicationName the name of the application
      */
     AbstractDmaApplication(String applicationName) {
         this.applicationName = requireNonNull(applicationName);
     }
 
+    /**
+     * Add module.
+     *
+     * @param module the module
+     */
     protected final void addModule(Module module) {
         modules.add(requireNonNull(module));
     }
 
+    /**
+     * Add property file.
+     *
+     * @param name the name
+     */
     protected void addPropertyFile(String name) {}
 
-    // A required properties
+    /**
+     * Add property file on classpath.
+     *
+     * @param name the name
+     */
+// A required properties
     protected void addPropertyFileOnClasspath(String name) {};
 
+    /**
+     * Configure.
+     */
     protected void configure() {}
 
     private void defaultModule() {
@@ -98,10 +133,22 @@ public abstract class AbstractDmaApplication {
         });
     }
 
+    /**
+     * Gets application name.
+     *
+     * @return the application name
+     */
     public final String getApplicationName() {
         return applicationName;
     }
 
+    /**
+     * Start t.
+     *
+     * @param <T>     the type parameter
+     * @param service the service
+     * @return the t
+     */
     protected <T extends Service> T start(T service) {
         services.add(requireNonNull(service));
         service.startAsync();
@@ -109,12 +156,30 @@ public abstract class AbstractDmaApplication {
         return service;
     }
 
+    /**
+     * Run.
+     *
+     * @param injector the injector
+     * @throws Exception the exception
+     */
     protected abstract void run(Injector injector) throws Exception;
 
+    /**
+     * Sleep unless shutdown.
+     *
+     * @param timeout the timeout
+     * @param unit    the unit
+     * @throws InterruptedException the interrupted exception
+     */
     public void sleepUnlessShutdown(long timeout, TimeUnit unit) throws InterruptedException {
         isShutdown.await(timeout, unit);
     }
 
+    /**
+     * Execute.
+     *
+     * @throws Exception the exception
+     */
     void execute() throws Exception {
         defaultModule();
         configure();
@@ -133,6 +198,9 @@ public abstract class AbstractDmaApplication {
         }
     }
 
+    /**
+     * Shutdown.
+     */
     public void shutdown() {
         LOG.info("Shutting down all services");
         // shutdown services in reverse order
@@ -147,6 +215,12 @@ public abstract class AbstractDmaApplication {
         LOG.info("All services was succesfully shutdown");
     }
 
+    /**
+     * Await service stopped.
+     *
+     * @param s the s
+     * @throws InterruptedException the interrupted exception
+     */
     void awaitServiceStopped(Service s) throws InterruptedException {
         State st = s.state();
         CountDownLatch cdl = null;
@@ -183,6 +257,12 @@ public abstract class AbstractDmaApplication {
         }
     }
 
+    /**
+     * Try manage.
+     *
+     * @param o the o
+     * @throws Exception the exception
+     */
     protected void tryManage(Object o) throws Exception {
         DynamicMBean mbean = Managements.tryCreate(this);
         if (mbean != null) {
@@ -195,11 +275,22 @@ public abstract class AbstractDmaApplication {
 
     private final Management management = new Management();
 
+    /**
+     * With management management.
+     *
+     * @return the management
+     */
     public Management withManagement() {
         return management;
     }
 
+    /**
+     * The type Management.
+     */
     public static class Management {
+        /**
+         * The D.
+         */
         volatile String d;
 
     }

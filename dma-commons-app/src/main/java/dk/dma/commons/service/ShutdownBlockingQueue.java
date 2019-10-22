@@ -32,24 +32,23 @@ import java.util.concurrent.locks.ReentrantLock;
  * inserted at the tail of the queue, and the queue retrieval operations obtain elements at the head of the queue.
  * Linked queues typically have higher throughput than array-based queues but less predictable performance in most
  * concurrent applications.
- * 
+ *
  * <p>
  * The optional capacity bound constructor argument serves as a way to prevent excessive queue expansion. The capacity,
  * if unspecified, is equal to {@link Integer#MAX_VALUE}. Linked nodes are dynamically created upon each insertion
  * unless this would bring the queue above capacity.
- * 
+ *
  * <p>
  * This class and its iterator implement all of the <em>optional</em> methods of the {@link Collection} and
  * {@link Iterator} interfaces.
- * 
+ *
  * <p>
  * This class is a member of the <a href="{@docRoot}/../technotes/guides/collections/index.html"> Java Collections
  * Framework</a>.
- * 
- * @since 1.5
+ *
+ * @param <E> the type of elements held in this collection
  * @author Doug Lea
- * @param <E>
- *            the type of elements held in this collection
+ * @since 1.5
  */
 public class ShutdownBlockingQueue<E> extends AbstractQueue<E> implements BlockingQueue<E>, java.io.Serializable {
     private static final long serialVersionUID = -6903933977591709194L;
@@ -198,11 +197,9 @@ public class ShutdownBlockingQueue<E> extends AbstractQueue<E> implements Blocki
 
     /**
      * Creates a {@code LinkedBlockingQueue} with the given (fixed) capacity.
-     * 
-     * @param capacity
-     *            the capacity of this queue
-     * @throws IllegalArgumentException
-     *             if {@code capacity} is not greater than zero
+     *
+     * @param capacity the capacity of this queue
+     * @throws IllegalArgumentException if {@code capacity} is not greater than zero
      */
     public ShutdownBlockingQueue(int capacity) {
         if (capacity <= 0) {
@@ -215,11 +212,9 @@ public class ShutdownBlockingQueue<E> extends AbstractQueue<E> implements Blocki
     /**
      * Creates a {@code LinkedBlockingQueue} with a capacity of {@link Integer#MAX_VALUE}, initially containing the
      * elements of the given collection, added in traversal order of the collection's iterator.
-     * 
-     * @param c
-     *            the collection of elements to initially contain
-     * @throws NullPointerException
-     *             if the specified collection or any of its elements are null
+     *
+     * @param c the collection of elements to initially contain
+     * @throws NullPointerException if the specified collection or any of its elements are null
      */
     public ShutdownBlockingQueue(Collection<? extends E> c) {
         this(Integer.MAX_VALUE);
@@ -317,8 +312,9 @@ public class ShutdownBlockingQueue<E> extends AbstractQueue<E> implements Blocki
 
     /**
      * True if shutdown has been requested. The queue might have outstanding elements.
-     * 
-     * @see #isTerminated()
+     *
+     * @return the boolean
+     * @see #isTerminated() #isTerminated()#isTerminated()#isTerminated()
      */
     boolean isShutdown() {
         return partialShutdown.getCount() == 0;
@@ -326,13 +322,16 @@ public class ShutdownBlockingQueue<E> extends AbstractQueue<E> implements Blocki
 
     /**
      * Returns true if the queue has been shutdown and all elements have been taken.
-     * 
-     * @return
+     *
+     * @return boolean boolean
      */
     boolean isTerminated() {
         return fullyShutdown.getCount() == 0;
     }
 
+    /**
+     * Shutdown.
+     */
     void shutdown() {
         fullyLock();
         try {
@@ -348,12 +347,25 @@ public class ShutdownBlockingQueue<E> extends AbstractQueue<E> implements Blocki
         signalNotFull();
     }
 
+    /**
+     * Await shutdown boolean.
+     *
+     * @param timeout the timeout
+     * @param unit    the unit
+     * @return the boolean
+     * @throws InterruptedException the interrupted exception
+     */
     public boolean awaitShutdown(long timeout, TimeUnit unit) throws InterruptedException {
         return partialShutdown.await(timeout, unit);
     }
 
     /**
      * Awaits that both the queue is shutdown and all elements have been taken.
+     *
+     * @param timeout the timeout
+     * @param unit    the unit
+     * @return the boolean
+     * @throws InterruptedException the interrupted exception
      */
     public boolean awaitFullyTerminated(long timeout, TimeUnit unit) throws InterruptedException {
         return fullyShutdown.await(timeout, unit);
@@ -541,6 +553,9 @@ public class ShutdownBlockingQueue<E> extends AbstractQueue<E> implements Blocki
 
     /**
      * Unlinks interior Node p with predecessor trail.
+     *
+     * @param p     the p
+     * @param trail the trail
      */
     void unlink(Node<E> p, Node<E> trail) {
         // assert isFullyLocked();
@@ -814,10 +829,25 @@ public class ShutdownBlockingQueue<E> extends AbstractQueue<E> implements Blocki
         }
     }
 
+    /**
+     * Drain to blocking int.
+     *
+     * @param c the c
+     * @return the int
+     * @throws InterruptedException the interrupted exception
+     */
     public int drainToBlocking(Collection<? super E> c) throws InterruptedException {
         return drainToBlocking(c, Integer.MAX_VALUE);
     }
 
+    /**
+     * Drain to blocking int.
+     *
+     * @param c           the c
+     * @param maxElements the max elements
+     * @return the int
+     * @throws InterruptedException the interrupted exception
+     */
     public int drainToBlocking(Collection<? super E> c, int maxElements) throws InterruptedException {
         if (c == null) {
             throw new NullPointerException();
@@ -942,6 +972,9 @@ public class ShutdownBlockingQueue<E> extends AbstractQueue<E> implements Blocki
         private Node<E> lastRet;
         private E currentElement;
 
+        /**
+         * Instantiates a new Itr.
+         */
         Itr() {
             fullyLock();
             try {
@@ -1015,8 +1048,13 @@ public class ShutdownBlockingQueue<E> extends AbstractQueue<E> implements Blocki
 
     /**
      * Linked list node class
+     *
+     * @param <E> the type parameter
      */
     static class Node<E> {
+        /**
+         * The Item.
+         */
         E item;
 
         /**
@@ -1025,6 +1063,11 @@ public class ShutdownBlockingQueue<E> extends AbstractQueue<E> implements Blocki
          */
         Node<E> next;
 
+        /**
+         * Instantiates a new Node.
+         *
+         * @param x the x
+         */
         Node(E x) {
             item = x;
         }

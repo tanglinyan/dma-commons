@@ -19,13 +19,20 @@ import java.util.Collection;
 
 /**
  * supporting orderly shutdown.
- * 
+ *
+ * @param <T> the type parameter
  * @author Kasper Nielsen
  */
 public abstract class AbstractBatchedStage<T> extends AbstractMessageProcessorService<T> {
 
     private final int maxBatchSize;
 
+    /**
+     * Instantiates a new Abstract batched stage.
+     *
+     * @param queueSize    the queue size
+     * @param maxBatchSize the max batch size
+     */
     protected AbstractBatchedStage(int queueSize, int maxBatchSize) {
         super(queueSize);
         if (maxBatchSize < 1) {
@@ -34,6 +41,11 @@ public abstract class AbstractBatchedStage<T> extends AbstractMessageProcessorSe
         this.maxBatchSize = maxBatchSize;
     }
 
+    /**
+     * Gets batch size.
+     *
+     * @return the batch size
+     */
     public int getBatchSize() {
         return maxBatchSize;
     }
@@ -57,10 +69,18 @@ public abstract class AbstractBatchedStage<T> extends AbstractMessageProcessorSe
         onShutdown();
     }
 
+    /**
+     * Is shutdown boolean.
+     *
+     * @return the boolean
+     */
     protected boolean isShutdown() {
         return state() != State.RUNNING || queue.isTerminated();
     }
 
+    /**
+     * On shutdown.
+     */
     protected void onShutdown() {}
 
 }

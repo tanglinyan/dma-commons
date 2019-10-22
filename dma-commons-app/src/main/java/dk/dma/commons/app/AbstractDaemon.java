@@ -21,21 +21,28 @@ import com.google.common.util.concurrent.Service;
 import com.google.inject.Injector;
 
 /**
- * 
+ * The type Abstract daemon.
+ *
  * @author Kasper Nielsen
  */
 public abstract class AbstractDaemon extends AbstractCommandLineTool {
 
+    /**
+     * The Log.
+     */
     static final Logger LOG = LoggerFactory.getLogger(AbstractDaemon.class);
 
     // Like a command tools, but keeps going and has a shutdown hook
 
-    /** Creates a new AbstractDaemon */
+    /**
+     * Creates a new AbstractDaemon
+     */
     public AbstractDaemon() {}
 
     /**
-     * @param applicationName
-     *            the name of the application
+     * Instantiates a new Abstract daemon.
+     *
+     * @param applicationName the name of the application
      */
     public AbstractDaemon(String applicationName) {
         super(applicationName);
@@ -55,9 +62,15 @@ public abstract class AbstractDaemon extends AbstractCommandLineTool {
         });
     }
 
+    /**
+     * Post shutdown.
+     */
     protected void postShutdown() {}
 
-    // Install shutdown hooks
+    /**
+     * Pre shutdown.
+     */
+// Install shutdown hooks
     protected void preShutdown() {}
 
     /** {@inheritDoc} */
@@ -71,5 +84,11 @@ public abstract class AbstractDaemon extends AbstractCommandLineTool {
         // Await on Ctrl-C, or all service exited
     }
 
+    /**
+     * Run daemon.
+     *
+     * @param injector the injector
+     * @throws Exception the exception
+     */
     protected abstract void runDaemon(Injector injector) throws Exception;;
 }

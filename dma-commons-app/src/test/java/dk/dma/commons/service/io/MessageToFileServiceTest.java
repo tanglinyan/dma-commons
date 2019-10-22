@@ -24,11 +24,17 @@ import org.junit.Test;
 import dk.dma.commons.util.io.OutputStreamSink;
 
 /**
- * 
+ * The type Message to file service test.
+ *
  * @author Kasper Nielsen
  */
 public class MessageToFileServiceTest {
 
+    /**
+     * Test.
+     *
+     * @throws IOException the io exception
+     */
     @SuppressWarnings({ "unchecked", "rawtypes" })
     @Test
     @Ignore

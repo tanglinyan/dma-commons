@@ -25,30 +25,45 @@ import dk.dma.commons.util.AnnotationUtil;
 import dk.dma.commons.util.ReflectionUtil;
 
 /**
- * 
+ * The type Abstract command line tool.
+ *
  * @author Kasper Nielsen
  */
 public abstract class AbstractCommandLineTool extends AbstractDmaApplication {
 
-    // We should always have a help
+    /**
+     * The Help.
+     */
+// We should always have a help
     @Parameter(names = "-help", help = true, description = "prints this help", hidden = true)
     protected boolean help;
-    
+
+    /**
+     * The Jc.
+     */
     JCommander jc;
 
+    /**
+     * Instantiates a new Abstract command line tool.
+     */
     public AbstractCommandLineTool() {
         super();
     }
 
     /**
-     * @param applicationName
+     * Instantiates a new Abstract command line tool.
+     *
+     * @param applicationName the application name
      */
     public AbstractCommandLineTool(String applicationName) {
         super(applicationName);
     }
 
     /**
-     * @param args
+     * Execute.
+     *
+     * @param args the args
+     * @throws Exception the exception
      */
     protected void execute(String[] args) throws Exception {
         // For various reasons we need to initialize the function field, because of @ParametersDelegate
@@ -87,7 +102,10 @@ public abstract class AbstractCommandLineTool extends AbstractDmaApplication {
             execute();
         }
     }
-    
+
+    /**
+     * Usage.
+     */
     protected void usage() {
         jc.usage();
     }

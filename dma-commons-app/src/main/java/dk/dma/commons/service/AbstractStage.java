@@ -16,18 +16,27 @@ package dk.dma.commons.service;
 
 
 /**
- * 
+ * The type Abstract stage.
+ *
+ * @param <T> the type parameter
  * @author Kasper Nielsen
  */
 public abstract class AbstractStage<T> extends AbstractMessageProcessorService<T> {
 
     /**
-     * @param queueSize
+     * Instantiates a new Abstract stage.
+     *
+     * @param queueSize the queue size
      */
     protected AbstractStage(int queueSize) {
         super(queueSize);
     }
 
+    /**
+     * Handle message.
+     *
+     * @param message the message
+     */
     protected abstract void handleMessage(T message);
 
     /** {@inheritDoc} */
