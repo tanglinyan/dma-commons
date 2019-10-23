@@ -24,17 +24,32 @@
     <version>0.5</version>
   </parent>
 
-  <artifactId>dma-commons-model</artifactId>
-  <name>DMA Commons Model</name>
-  <description>The DMA Commons Model</description>
+  <artifactId>dma-commons-util</artifactId>
+  <name>DMA Commons Util</name>
+  <description>The DMA Commons Util</description>
 
   <dependencies>
     <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>dma-commons-management</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
       <groupId>dk.dma.enav</groupId>
-      <artifactId>enav-model</artifactId>
+      <artifactId>enav-util</artifactId>
       <version>${dependencies.enav.version}</version>
     </dependency>
-<!--    <dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>1.7.12</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+      <version>3.1</version>
+    </dependency>
+    <dependency>
       <groupId>joda-time</groupId>
       <artifactId>joda-time</artifactId>
       <version>2.2</version>
@@ -48,6 +63,6 @@
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
       <version>${dependencies.guava.version}</version>
-    </dependency>          -->
+    </dependency>
   </dependencies>
 </project>
