@@ -62,8 +62,11 @@ public class ForkJoinUtil {
         }
     }
 
+
     /**
-     * Invokes the specified consumer for each element in an array.  @param <E>  the type parameter
+     * Invokes the specified consumer for each element in an array.
+     *
+     * @param <E> the type parameter
      */
     static class ForEach<E> extends CountedCompleter<Void> {
 
@@ -113,7 +116,9 @@ public class ForkJoinUtil {
     }
 
     /**
-     * Invokes the specified consumer for each element in an array.  @param <E>  the type parameter
+     * Invokes the specified consumer for each element in an array.
+     *
+     * @param <E> the type parameter
      */
     static class ForEachE<E> extends CountedCompleter<Void> {
 

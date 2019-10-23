@@ -53,6 +53,8 @@ public final class CountingOutputStream extends FilterOutputStream {
 
     /**
      * Returns the number of bytes written.  @return the count
+     *
+     * @return the count
      */
     public long getCount() {
         return counter.get();

@@ -41,7 +41,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * A {@link java.util.ConcurrentMap} supporting user-defined equivalence comparisons, soft, weak, or strong keys and
+ * A {@link java.util.concurrent.ConcurrentMap} supporting user-defined equivalence comparisons, soft, weak, or strong keys and
  * values, and user-supplied computational methods for setting and updating values. In particular:
  * <ul>
  *
@@ -79,7 +79,7 @@ import java.util.concurrent.locks.ReentrantLock;
  *          }
  *        },
  *      STRONG, EQUALS, 0);
- * }**
+ * }***
  * </pre>
  * <p>
  * The first usage above provides a replacement for {@link java.util.IdentityHashMap}, and the second a replacement for
@@ -102,7 +102,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * <p>
  * When Equivalences other than equality are used, the returned collections may violate the specifications of
  * {@code Map} and/or {@code Set} interfaces, which mandate the use of the {@code equals} method when comparing objects.
- * The methods of this class otherwise have properties similar to those of {@link java.util.ConcurrentHashMap} under its
+ * The methods of this class otherwise have properties similar to those of {@link java.util.concurrent.ConcurrentHashMap} under its
  * default settings. To adaptively maintain semantics and performance under varying conditions, this class does
  * <em>not</em> support load factor or concurrency level parameters. This class does not permit null keys or values.
  * This class is serializable; however, serializing a map that uses soft or weak references can give unpredictable
@@ -400,7 +400,6 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
      * @return the updated value or {@code null} if the computation returned {@code null}
      * @throws NullPointerException if the specified key or remappingFunction is null
      * @throws RuntimeException     or Error if the remappingFunction does so, in which case the mapping is left in its previous state
-     * @SuppressWarnings("unchecked")
      */
     public V compute(K key, RemappingFunction<? super K, V> remappingFunction) {
         if (key == null || remappingFunction == null) {
@@ -852,8 +851,9 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
     /**
      * Reconstitutes the instance from a stream (that is, deserializes it).
      * 
-     * @param s
-     *            the stream
+     * @param s the stream
+     * @throws IOException the IOexception.
+     * @throws ClassNotFoundException the ClassNotFoundException.
      */
     private void readObject(java.io.ObjectInputStream s) throws IOException, ClassNotFoundException {
         s.defaultReadObject();
@@ -1108,6 +1108,8 @@ public class CustomConcurrentHashMap<K, V> extends AbstractMap<K, V> implements 
      *            the stream
      * @serialData the key (Object) and value (Object) for each key-value mapping, followed by a null pair. The
      *             key-value mappings are emitted in no particular order.
+     * @throws IOException the IOexception.
+     *
      */
     private void writeObject(java.io.ObjectOutputStream s) throws IOException {
         s.defaultWriteObject();
