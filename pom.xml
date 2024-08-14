@@ -10,7 +10,7 @@
 
   <groupId>dk.dma.commons</groupId>
   <artifactId>dma-commons-parent</artifactId>
-  <version>0.5</version>
+  <version>0.5-local</version>
   <name>DMA Commons Parent</name>
   <packaging>pom</packaging>
   <description>This parent pom for Commons</description>
@@ -31,6 +31,6 @@
   </modules>
 
   <properties>
-    <dependencies.enav.version>0.6-SNAPSHOT</dependencies.enav.version>
+    <dependencies.enav.version>0.6</dependencies.enav.version>
   </properties>
 </project>
